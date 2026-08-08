@@ -1,4 +1,4 @@
-# StaffHire — 6-Day Execution Plan + Client Checklist
+# Hotel Casual — 6-Day Execution Plan + Client Checklist
 
 > Starting point: Flutter installed on office laptop, **zero code written**, no Firebase/Play accounts yet.
 > Target: working core loop demo-ready in 6 days (+ Day 7 buffer if available).

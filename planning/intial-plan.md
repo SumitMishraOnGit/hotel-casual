@@ -1,4 +1,4 @@
-# StaffHire — Complete Research & Flow Document
+# Hotel Casual — Complete Research & Flow Document
 > **Purpose**: Present this to the recruiter tomorrow. Covers domain research, complete app flow, every screen, every dialog, and your questions.
 
 ---

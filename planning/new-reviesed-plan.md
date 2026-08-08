@@ -1,4 +1,4 @@
-# StaffHire — Build Plan (MVP)
+# Hotel Casual — Build Plan (MVP)
 
 > Flutter + GetX + Firebase. Solo build, 6 days + 1 buffer day.
 > Goal: a working core loop — admin posts a job, workers get notified, workers accept, slots fill and auto-close.
@@ -11,19 +11,18 @@
 |---|---|---|
 | Frontend | **Flutter + GetX** | Bindings/controllers/views, fast to structure |
 | Backend | **Firebase** | No server to build or deploy — biggest time saver |
-| Auth | **Firebase Phone Auth (OTP)** + Email/Password for admin | See auth notes below |
+| Auth | **Phone & Password Auth** | See auth notes below |
 | Database | **Cloud Firestore** | Real-time listeners = live slot counts for free |
 | Notifications | **In-app (Firestore) for v1**, FCM push if ahead of schedule | Push needs extra setup; don't let it block the MVP |
 | File/photo upload | **Firebase Storage** | Profile photos, venue logo (optional) |
 
 **Auth strategy (role-based):**
-- **Workers (Driver / Steward / Chef):** Strictly **Phone OTP only** — no passwords. Client requirement.
-- **Central Admin:** **Phone OTP + Email/Password** — both methods available as fallback for each other. Admin needs reliable access even if SMS is delayed.
+- **Workers (Driver / Steward / Chef):** Strictly **Phone & Password** — client changed from OTP to simplify.
+- **Central Admin:** **Email/Password** — Admin needs reliable access.
 
-**OTP notes:**
-- Use Firebase **test phone numbers** during development so you don't burn SMS on every rebuild.
-- Android needs SHA-1 / SHA-256 fingerprints added to the Firebase project for phone auth to work. Do this on Day 1, it's a common blocker.
-- India SMS delivery via Firebase can occasionally be flaky. **MSG91** is the fallback option if real SMS delivery fails.
+**Auth notes:**
+- OTP flow is deferred. Use simple Phone/Password login for MVP.
+- We will build the UI for Phone/Password login today.
 
 ---
 
@@ -47,17 +46,18 @@
 - **Heading Font**: `Plus Jakarta Sans` (Bold, clean headings & app titles)
 - **Body & Labels Font**: `Inter` (Legible for body text, numbers, pay rates)
 - **Brand Tagline**: *"Kaam milega, aasaan tarike se"*
-- **Auth Screen Copy**: *"Phone number par OTP bhejenge"*
+- **Auth Screen Copy**: *"Log in with your phone and password"*
 - **Worker Target Copy**: *"Driver · Steward · Chef ke liye"*
 - **Worker Greeting**: *"Namaste 👋 [Name]"*
 
 ### 📱 Key Component Wireframe Specs
 
 1. **S2 Phone Login Screen Layout:**
-   - **Header Banner**: Deep Teal (`#0B4F49` / `#0F766E`) curved bottom box with briefcase logo + `StaffHire` title + Hinglish tagline.
+   - **Header Banner**: Deep Teal (`#0B4F49` / `#0F766E`) curved bottom box with briefcase logo + `Hotel Casual` title + Hinglish tagline.
    - **Login Form Card**: Clean white container overlaying bottom of header banner.
    - **Phone Input**: Fixed `+91` prefix with phone number placeholder.
-   - **Primary Action**: Full-width rounded teal button: **Send OTP**.
+   - **Password Input**: Secure text field for password.
+   - **Primary Action**: Full-width rounded teal button: **Log In**.
 
 2. **W1 Job Feed Screen Layout:**
    - **Top Header**: Worker greeting (`Namaste 👋 Rajendra`) + `🟢 Available` status badge.
@@ -109,7 +109,7 @@ Each `modules/<feature>/` folder has the three GetX subfolders: `bindings/`, `co
 
 ## 3. Trimmed Screen List (~11)
 
-**Auth (shared):** Splash · Login (OTP) · Signup + Role (one flow) · Profile Setup (worker only)
+**Auth (shared):** Splash · Login (Phone/Password) · Signup + Role (one flow) · Profile Setup (worker only)
 **Worker:** Job Feed · Job Detail · My Jobs (tabbed: Upcoming / Completed) · Notifications · Profile
 **Admin:** Dashboard (jobs + FAB) · Create Job · Job Detail (accepted workers)
 
@@ -152,13 +152,12 @@ Auth is the gate → admin creates the data → worker consumes it. Build in tha
 
 ## 6. The 6-Day Plan (+ Day 7 buffer)
 
-### Day 1 — Setup + Firebase + OTP login *(the risky day — front-loaded on purpose)*
+### Day 1 — Setup + Firebase + Phone/Password login *(the risky day — front-loaded on purpose)*
 - Create Flutter project, GetX folder structure, theme, routes skeleton.
-- Create Firebase project, connect FlutterFire, enable **Phone Auth** + **Firestore**.
-- Add SHA-1/SHA-256 to Firebase (Android). Set up test phone numbers.
-- Get OTP login working end-to-end: enter number → receive code → verified session.
+- Create Firebase project, connect FlutterFire, enable **Authentication** + **Firestore**.
+- Get Phone/Password login working end-to-end: enter number + password → verified session.
 - Splash screen with role-based routing stub.
-- ✅ **Done when:** you can log in via OTP and land on a (placeholder) dashboard.
+- ✅ **Done when:** you can log in via phone/password and land on a (placeholder) dashboard.
 
 ### Day 2 — Auth complete + data model + admin posts a job
 - Signup + role selection flow → write `user` doc with role.
@@ -206,7 +205,7 @@ Overflow from any slipped day, unexpected Firebase issues, FCM if not done, demo
 
 | Risk | Mitigation |
 |---|---|
-| OTP setup eats Day 1 | Fall back to email+password; add OTP after MVP works |
+| Auth setup eats Day 1 | Focus on simple phone/password first |
 | SHA fingerprint / phone-auth config | Do it first thing Day 1, not mid-build |
 | The accept transaction | Give it real focus on Day 3; test with 2 accounts |
 | Firebase learning curve | It's front-loaded days 1–3; days 4–6 are familiar UI work |
@@ -223,6 +222,6 @@ Ratings · GPS check-in · in-app chat · payment/UPI · analytics dashboard · 
 ## 9. Open Questions / Status
 
 1. ✅ **One central admin confirmed**: Central admin account manages postings; venue details entered per job.
-2. ✅ **Auth confirmed**: Workers = Phone OTP only (no passwords). Central Admin = OTP + Email/Password (dual fallback).
+2. ✅ **Auth confirmed**: Workers = Phone + Password. Central Admin = Email/Password.
 3. ⏳ **City-based filtering**: Awaiting client input.
 4. ✅ **Role set confirmed**: Driver, Steward, and Chef are the 3 fixed roles for v1.

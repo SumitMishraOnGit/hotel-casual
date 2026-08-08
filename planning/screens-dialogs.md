@@ -1,4 +1,4 @@
-# StaffHire — Screen & Dialog Breakdown (v2)
+# Hotel Casual — Screen & Dialog Breakdown (v2)
 
 > Reconciles the original screen map with all locked decisions:
 > **OTP-only auth · single central admin · roles Driver/Steward/Chef · onboarding cut · standalone role screen cut.**
