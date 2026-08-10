@@ -4,7 +4,7 @@ import '../../../core/services/job_service.dart';
 import '../../../data/models/job_model.dart';
 import '../../../routes/app_routes.dart';
 
-class AdminDashboardController extends GetxController {
+class WorkerHomeController extends GetxController {
   final jobs = <JobModel>[].obs;
   final isLoading = true.obs;
 
@@ -34,19 +34,14 @@ class AdminDashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final adminId = _authService.currentUser.value?.uid ?? '';
-    _jobService.streamAdminJobs(adminId).listen((list) {
+    _jobService.streamOpenJobs().listen((list) {
       jobs.value = list;
       isLoading.value = false;
     });
   }
 
-  void goToCreateJob() {
-    Get.toNamed(Routes.createJob);
-  }
-
-  Future<void> cancelJob(String jobId) async {
-    await _jobService.cancelJob(jobId);
+  void goToJobDetail(JobModel job) {
+    Get.toNamed(Routes.jobDetail, arguments: job);
   }
 
   Future<void> logout() async {

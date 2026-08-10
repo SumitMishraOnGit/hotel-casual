@@ -8,6 +8,9 @@ class JobModel {
   final String city;
   final String date;
   final int wage;
+  final String description;
+  final String contactPersonName;
+  final String contactPersonPhone;
   final List<JobTitleEntry> titles; // multiple role/title entries
   final String status; // open / filled / cancelled
   final String createdAt;
@@ -20,6 +23,9 @@ class JobModel {
     required this.city,
     required this.date,
     required this.wage,
+    this.description = '',
+    this.contactPersonName = '',
+    this.contactPersonPhone = '',
     required this.titles,
     required this.status,
     required this.createdAt,
@@ -39,6 +45,9 @@ class JobModel {
     'city': city,
     'date': date,
     'wage': wage,
+    'description': description,
+    'contactPersonName': contactPersonName,
+    'contactPersonPhone': contactPersonPhone,
     'titles': titles.map((t) => t.toJson()).toList(),
     'status': status,
     'createdAt': createdAt,
@@ -61,6 +70,25 @@ class JobModel {
             .toList();
       }
     }
+    final parsedWage = _toInt(json['wage']);
+    final fallbackWage = parsedWage > 0
+        ? parsedWage
+        : (titleList.isNotEmpty ? titleList.first.wage : 0);
+
+    if (fallbackWage > 0) {
+      titleList = titleList
+          .map((t) => t.wage <= 0
+              ? JobTitleEntry(
+                  title: t.title,
+                  role: t.role,
+                  wage: fallbackWage,
+                  slotsTotal: t.slotsTotal,
+                  slotsFilled: t.slotsFilled,
+                )
+              : t)
+          .toList();
+    }
+
     return JobModel(
       jobId: json['jobId'] ?? '',
       adminId: json['adminId'] ?? '',
@@ -68,7 +96,10 @@ class JobModel {
       venueAddress: json['venueAddress'] ?? '',
       city: json['city'] ?? '',
       date: json['date'] ?? '',
-      wage: _toInt(json['wage']),
+      wage: fallbackWage,
+      description: json['description'] ?? '',
+      contactPersonName: json['contactPersonName'] ?? '',
+      contactPersonPhone: json['contactPersonPhone'] ?? '',
       titles: titleList,
       status: json['status'] ?? 'open',
       createdAt: json['createdAt'] ?? '',

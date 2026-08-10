@@ -6,11 +6,15 @@ import '../modules/auth/bindings/login_binding.dart';
 import '../modules/auth/views/login_view.dart';
 import '../modules/auth/bindings/register_binding.dart';
 import '../modules/auth/views/register_view.dart';
+import '../modules/worker_home/bindings/worker_home_binding.dart';
 import '../modules/worker_home/views/worker_home_view.dart';
 import '../modules/admin/bindings/admin_dashboard_binding.dart';
 import '../modules/admin/bindings/create_job_binding.dart';
 import '../modules/admin/views/admin_dashboard_view.dart';
 import '../modules/admin/views/create_job_view.dart';
+
+import '../modules/job_detail/bindings/job_detail_binding.dart';
+import '../modules/job_detail/views/job_detail_view.dart';
 
 class AppPages {
   static const initial = Routes.splash;
@@ -34,6 +38,7 @@ class AppPages {
     GetPage(
       name: Routes.workerHome,
       page: () => const WorkerHomeView(),
+      binding: WorkerHomeBinding(),
     ),
     GetPage(
       name: Routes.adminDashboard,
@@ -44,6 +49,11 @@ class AppPages {
       name: Routes.createJob,
       page: () => const CreateJobView(),
       binding: CreateJobBinding(),
+    ),
+    GetPage(
+      name: Routes.jobDetail,
+      page: () => const JobDetailView(),
+      binding: JobDetailBinding(),
     ),
   ];
 }

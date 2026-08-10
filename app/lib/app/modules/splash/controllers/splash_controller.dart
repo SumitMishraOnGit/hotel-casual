@@ -1,7 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../routes/app_routes.dart';
 
 class SplashController extends GetxController {
+  final AuthService _authService = Get.find<AuthService>();
+
   @override
   void onInit() {
     super.onInit();
@@ -9,10 +13,26 @@ class SplashController extends GetxController {
   }
 
   void _navigateToNext() async {
-    // Simulate loading/initialization time
     await Future.delayed(const Duration(seconds: 2));
-    
-    // Navigate to login
+
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    if (firebaseUser != null) {
+      try {
+        final userProfile = await _authService.fetchUserProfile(firebaseUser.uid);
+        if (userProfile != null) {
+          if (userProfile.role == 'admin') {
+            Get.offAllNamed(Routes.adminDashboard);
+            return;
+          } else {
+            Get.offAllNamed(Routes.workerHome);
+            return;
+          }
+        }
+      } catch (_) {
+        // If error fetching profile, fallback to login
+      }
+    }
+
     Get.offAllNamed(Routes.login);
   }
 }

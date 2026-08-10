@@ -7,23 +7,34 @@ import '../../../data/models/job_title_entry.dart';
 
 /// Holds the state for a single title row in the form
 class TitleRowState {
-  final TextEditingController titleController;
-  final TextEditingController slotsController;
+  TextEditingController? _titleController;
+  TextEditingController? _wageController;
+  TextEditingController? _slotsController;
   final RxString role;
 
-  TitleRowState()
-      : titleController = TextEditingController(),
-        slotsController = TextEditingController(),
-        role = 'steward'.obs;
+  TextEditingController get titleController =>
+      _titleController ??= TextEditingController();
+  TextEditingController get wageController =>
+      _wageController ??= TextEditingController();
+  TextEditingController get slotsController =>
+      _slotsController ??= TextEditingController();
+
+  TitleRowState() : role = 'steward'.obs {
+    _titleController = TextEditingController();
+    _wageController = TextEditingController();
+    _slotsController = TextEditingController();
+  }
 
   void dispose() {
-    titleController.dispose();
-    slotsController.dispose();
+    _titleController?.dispose();
+    _wageController?.dispose();
+    _slotsController?.dispose();
   }
 
   bool get isValid {
+    final wage = int.tryParse(wageController.text.trim()) ?? 0;
     final slots = int.tryParse(slotsController.text.trim()) ?? 0;
-    return titleController.text.trim().isNotEmpty && slots > 0 && slots <= 50;
+    return wage > 0 && slots > 0 && slots <= 50;
   }
 }
 
@@ -34,7 +45,9 @@ class CreateJobController extends GetxController {
   final venueNameController = TextEditingController();
   final venueAddressController = TextEditingController();
   final cityController = TextEditingController();
-  final wageController = TextEditingController();
+  final descriptionController = TextEditingController();
+  final contactPersonNameController = TextEditingController();
+  final contactPersonPhoneController = TextEditingController();
 
   // Title rows — starts with one empty row
   final titleRows = <TitleRowState>[].obs;
@@ -55,14 +68,16 @@ class CreateJobController extends GetxController {
     venueNameController.addListener(_checkValidity);
     venueAddressController.addListener(_checkValidity);
     cityController.addListener(_checkValidity);
-    wageController.addListener(_checkValidity);
+    descriptionController.addListener(_checkValidity);
+    contactPersonNameController.addListener(_checkValidity);
+    contactPersonPhoneController.addListener(_checkValidity);
   }
 
   // ── Title Row Management ─────────────────────────────────
 
   void addTitleRow() {
     final row = TitleRowState();
-    row.titleController.addListener(_checkValidity);
+    row.wageController.addListener(_checkValidity);
     row.slotsController.addListener(_checkValidity);
     titleRows.add(row);
     _checkValidity();
@@ -82,15 +97,15 @@ class CreateJobController extends GetxController {
   // ── Form Validity ────────────────────────────────────────
 
   void _checkValidity() {
-    final wage = int.tryParse(wageController.text.trim()) ?? 0;
     final venueOk = venueNameController.text.trim().isNotEmpty &&
         venueAddressController.text.trim().isNotEmpty &&
         cityController.text.trim().isNotEmpty;
-    final wageOk = wage > 0;
+    final contactOk = contactPersonNameController.text.trim().isNotEmpty &&
+        contactPersonPhoneController.text.trim().length >= 10;
     final dateOk = selectedDate.value != null;
     final titlesOk =
         titleRows.isNotEmpty && titleRows.every((r) => r.isValid);
-    isFormValid.value = venueOk && wageOk && dateOk && titlesOk;
+    isFormValid.value = venueOk && contactOk && dateOk && titlesOk;
   }
 
   // ── Date Picker ──────────────────────────────────────────
@@ -125,6 +140,16 @@ class CreateJobController extends GetxController {
     return null;
   }
 
+  String? validatePhone(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Phone number required';
+    final cleaned = value.replaceAll(RegExp(r'\D'), '');
+    if (cleaned.length != 10) return 'Enter a 10-digit mobile number';
+    if (!RegExp(r'^[6-9]\d{9}$').hasMatch(cleaned)) {
+      return 'Enter a valid mobile number starting with 6-9';
+    }
+    return null;
+  }
+
   String? validateWage(String? value) {
     if (value == null || value.trim().isEmpty) return 'Wage is required';
     final n = int.tryParse(value.trim());
@@ -150,7 +175,7 @@ class CreateJobController extends GetxController {
   Future<void> submit() async {
     if (!formKey.currentState!.validate()) return;
     if (selectedDate.value == null) {
-      Get.snackbar('Date Required', 'Please select a shift date',
+      Get.snackbar('Date Required', 'Please select a job date',
           snackPosition: SnackPosition.TOP,
           backgroundColor: Colors.redAccent,
           colorText: Colors.white);
@@ -164,14 +189,18 @@ class CreateJobController extends GetxController {
       final dateStr =
           '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-      final entries = titleRows
-          .map((r) => JobTitleEntry(
-                title: r.titleController.text.trim(),
-                role: r.role.value,
-                slotsTotal: int.parse(r.slotsController.text.trim()),
-                slotsFilled: 0,
-              ))
-          .toList();
+      final entries = titleRows.map((r) {
+        final roleName = r.role.value.capitalizeFirst ?? r.role.value;
+        return JobTitleEntry(
+          title: roleName,
+          role: r.role.value,
+          wage: int.parse(r.wageController.text.trim()),
+          slotsTotal: int.parse(r.slotsController.text.trim()),
+          slotsFilled: 0,
+        );
+      }).toList();
+
+      final primaryWage = entries.isNotEmpty ? entries.first.wage : 0;
 
       final job = JobModel(
         jobId: '',
@@ -180,7 +209,10 @@ class CreateJobController extends GetxController {
         venueAddress: venueAddressController.text.trim(),
         city: cityController.text.trim(),
         date: dateStr,
-        wage: int.parse(wageController.text.trim()),
+        wage: primaryWage,
+        description: descriptionController.text.trim(),
+        contactPersonName: contactPersonNameController.text.trim(),
+        contactPersonPhone: contactPersonPhoneController.text.trim(),
         titles: entries,
         status: 'open',
         createdAt: DateTime.now().toIso8601String(),
@@ -210,7 +242,9 @@ class CreateJobController extends GetxController {
     venueNameController.dispose();
     venueAddressController.dispose();
     cityController.dispose();
-    wageController.dispose();
+    descriptionController.dispose();
+    contactPersonNameController.dispose();
+    contactPersonPhoneController.dispose();
     for (final row in titleRows) {
       row.dispose();
     }

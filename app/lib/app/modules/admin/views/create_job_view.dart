@@ -57,8 +57,53 @@ class CreateJobView extends GetView<CreateJobController> {
               ),
               const SizedBox(height: 20),
 
+              // ── Contact Details ────────────────────────────────────
+              _sectionLabel(context, 'Contact Person Name'),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: controller.contactPersonNameController,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (v) => controller.validateRequired(v, 'Contact Person'),
+                decoration: const InputDecoration(hintText: 'e.g. HR Team / Rajesh Kumar'),
+              ),
+              const SizedBox(height: 20),
+
+              _sectionLabel(context, 'Contact Person Phone'),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: controller.contactPersonPhoneController,
+                keyboardType: TextInputType.phone,
+                maxLength: 10,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: controller.validatePhone,
+                decoration: const InputDecoration(
+                  hintText: '9876543210',
+                  prefixText: '+91 ',
+                  counterText: '',
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // ── Job Description ────────────────────────────────────
+              _sectionLabel(context, 'Job Description (Optional, max 1000 chars)'),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: controller.descriptionController,
+                maxLength: 1000,
+                maxLines: 4,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                decoration: const InputDecoration(
+                  hintText: 'Describe job requirements, duties, dress code, etc.',
+                ),
+              ),
+              const SizedBox(height: 20),
+
               // ── Date Picker ────────────────────────────────────────
-              _sectionLabel(context, 'Shift Date'),
+              _sectionLabel(context, 'Job Date'),
               const SizedBox(height: 8),
               Obx(() {
                 final date = controller.selectedDate.value;
@@ -95,40 +140,24 @@ class CreateJobView extends GetView<CreateJobController> {
                   ),
                 );
               }),
-              const SizedBox(height: 20),
-
-              // ── Wage ───────────────────────────────────────────────
-              _sectionLabel(context, 'Wage per Job (₹)'),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: controller.wageController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: controller.validateWage,
-                decoration: const InputDecoration(
-                  hintText: '1200',
-                  prefixText: '₹ ',
-                ),
-              ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
 
               // ── Job Titles Section ────────────────────────────────
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _sectionLabel(context, 'Job Titles & Slots'),
-                  Obx(() => TextButton.icon(
-                        onPressed: controller.addTitleRow,
-                        icon: const Icon(Icons.add, size: 16),
-                        label: const Text('Add Title'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(0, 32),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                      )),
+                  TextButton.icon(
+                    onPressed: controller.addTitleRow,
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('Add Title'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(0, 32),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -151,15 +180,13 @@ class CreateJobView extends GetView<CreateJobController> {
 
               // ── Submit ─────────────────────────────────────────────
               Obx(() {
-                final enabled = controller.isFormValid.value &&
-                    !controller.isLoading.value;
+                final isLoading = controller.isLoading.value;
                 return ElevatedButton(
-                  onPressed: enabled ? controller.submit : null,
+                  onPressed: isLoading ? null : controller.submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        enabled ? AppColors.primary : AppColors.border,
+                    backgroundColor: AppColors.primary,
                   ),
-                  child: controller.isLoading.value
+                  child: isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
@@ -240,64 +267,86 @@ class _TitleRow extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Title text field
-          TextFormField(
-            controller: row.titleController,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            validator: controller.validateTitle,
-            decoration: const InputDecoration(
-              hintText: 'e.g. Banquet Steward',
-              isDense: true,
-            ),
-          ),
+          // Role chips
+          Obx(() => Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: controller.roles.map((role) {
+                  final isSelected =
+                      row.role.value == role.toLowerCase();
+                  return GestureDetector(
+                    onTap: () =>
+                        controller.setRowRole(index, role),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.primary
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.border,
+                        ),
+                      ),
+                      child: Text(
+                        role,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: isSelected
+                              ? Colors.white
+                              : AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              )),
           const SizedBox(height: 12),
 
-          // Role chips + Slots side by side
+          // Wage & Slots inputs side by side
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Role chips
+              // Wage input for this title card
               Expanded(
-                child: Obx(() => Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: controller.roles.map((role) {
-                        final isSelected =
-                            row.role.value == role.toLowerCase();
-                        return GestureDetector(
-                          onTap: () =>
-                              controller.setRowRole(index, role),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 150),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.border,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Wage per Job (₹)',
+                      style:
+                          Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary,
+                                fontSize: 11,
                               ),
-                            ),
-                            child: Text(
-                              role,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: isSelected
-                                    ? Colors.white
-                                    : AppColors.textSecondary,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    )),
+                    ),
+                    const SizedBox(height: 4),
+                    TextFormField(
+                      controller: row.wageController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      autovalidateMode:
+                          AutovalidateMode.onUserInteraction,
+                      validator: controller.validateWage,
+                      decoration: const InputDecoration(
+                        hintText: '1200',
+                        prefixText: '₹ ',
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 10),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(width: 12),
 
