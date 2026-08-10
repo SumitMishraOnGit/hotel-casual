@@ -154,15 +154,16 @@ So in this app: **Steward = the person who serves food, manages tables, and assi
 #### Screen R2: `Create Job Screen`
 - **Fields**:
   - Job Title (text) — e.g., "Drivers for Wedding Reception"
-  - Description (textarea) — details about the job
+  - Description (textarea) — details about the job till 1000 characters
   - Role Required (dropdown) — Driver / Steward / Chef
   - Number of Workers Needed (number) — e.g., 5
   - Event Date (date picker)
-  - Event Time — Start Time & End Time (time picker)
+  - Event Time — Start Time & End Time (time picker) give option of full day too here 
   - Venue Name (text)
-  - Venue Address (text)
-  - City (dropdown/text)
-  - Daily Wage ₹ (number) — e.g., ₹800
+  - contact person name and details(no etc) 
+  - Venue Address (text) can we do use current locaiton thing here, do we need google paid api here, yes or no 
+  - City (dropdown/text) use city package 
+  - Daily Wage ₹ (number) — e.g., ₹800 
 - **Button**: "Post Job"
 
 > **🔲 Dialog: Confirm Post**

@@ -1,22 +1,20 @@
 # Hotel Casual — Screen & Dialog Breakdown (v2)
 
 > Reconciles the original screen map with all locked decisions:
-> **OTP-only auth · single central admin · roles Driver/Steward/Chef · onboarding cut · standalone role screen cut.**
-> Result: **12 screens**, **~11 core dialogs/sheets** (+ system prompts).
+> **Direct phone/identifier auth (no OTP) · single central admin · roles Driver/Steward/Chef · onboarding cut · standalone role screen cut.**
+> Result: **11 core screens**, **~11 core dialogs/sheets** (+ system prompts).
 
 ---
 
 ## What changed vs the original 16-screen map
 
-**Removed (5):**
+**Removed (6):**
 - Onboarding / Welcome slides → cut for MVP
 - Standalone Role Selection screen → merged into Complete Profile
 - Recruiter Sign Up (business) → gone (no recruiter self-signup)
 - Recruiter Profile / Business Profile Setup → gone (venue details live on each job)
-- Password Sign Up fields / Forgot Password → gone (OTP-only)
-
-**Added (1):**
-- OTP Verification screen (the code-entry step)
+- Password Sign Up fields / Forgot Password → gone
+- OTP Verification screen → cut (direct auth used)
 
 **Renamed:** Recruiter Dashboard/Detail → **Admin** Dashboard/Detail. Recruiter History → folded into Admin Dashboard as an **Active | Past** tab.
 
@@ -28,12 +26,12 @@
 Logo + loader. Reads auth state and routes: no session → Login · role=worker → Job Feed · role=admin → Admin Dashboard.
 
 ### S2 · Login / Phone Entry
-Country code (+91 default) + phone number field · **"Send OTP"** button.
-No password, no email, no "Forgot Password". Single entry point for both new and returning users.
-
-### S3 · OTP Verification
-6-digit code input (auto-read on Android where possible) · resend timer (~30s) then **"Resend OTP"** link · **"Verify"** button.
+Country code (+91 default) + phone number field · **"Continue"** button.
+Direct authentication flow without OTP SMS verification.
 On success: existing user → route by role · new user → Complete Profile.
+
+### S3 · OTP Verification *(Cut / Disabled)*
+*(This screen is bypassed for v1 as OTP verification is disabled).*
 
 ### S4 · Complete Profile *(new workers only)*
 **Role picker** (segmented: Driver / Steward / Chef) — this is where the old standalone role screen lives now.
