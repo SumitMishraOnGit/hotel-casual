@@ -65,12 +65,26 @@ class CreateJobController extends GetxController {
   void onInit() {
     super.onInit();
     addTitleRow(); // start with one row
+
+    // Auto-fill logged-in admin's contact details (editable)
+    final user = _authService.currentUser.value;
+    if (user != null) {
+      if (user.name.isNotEmpty) {
+        contactPersonNameController.text = user.name;
+      }
+      if (user.phone.isNotEmpty) {
+        contactPersonPhoneController.text = user.phone;
+      }
+    }
+
     venueNameController.addListener(_checkValidity);
     venueAddressController.addListener(_checkValidity);
     cityController.addListener(_checkValidity);
     descriptionController.addListener(_checkValidity);
     contactPersonNameController.addListener(_checkValidity);
     contactPersonPhoneController.addListener(_checkValidity);
+
+    _checkValidity();
   }
 
   // ── Title Row Management ─────────────────────────────────

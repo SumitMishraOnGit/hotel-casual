@@ -6,5 +6,6 @@ abstract class Routes {
   static const adminDashboard = '/admin-dashboard';
   static const createJob = '/create-job';
   static const jobDetail = '/job-detail';
+  static const applicants = '/applicants';
 }
 

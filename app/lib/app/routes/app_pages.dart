@@ -15,6 +15,8 @@ import '../modules/admin/views/create_job_view.dart';
 
 import '../modules/job_detail/bindings/job_detail_binding.dart';
 import '../modules/job_detail/views/job_detail_view.dart';
+import '../modules/applicants/bindings/applicants_binding.dart';
+import '../modules/applicants/views/applicants_view.dart';
 
 class AppPages {
   static const initial = Routes.splash;
@@ -54,6 +56,11 @@ class AppPages {
       name: Routes.jobDetail,
       page: () => const JobDetailView(),
       binding: JobDetailBinding(),
+    ),
+    GetPage(
+      name: Routes.applicants,
+      page: () => const ApplicantsView(),
+      binding: ApplicantsBinding(),
     ),
   ];
 }

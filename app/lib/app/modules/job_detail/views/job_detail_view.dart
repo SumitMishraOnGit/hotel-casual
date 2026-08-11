@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../data/models/job_model.dart';
 import '../controllers/job_detail_controller.dart';
 
 class JobDetailView extends GetView<JobDetailController> {
@@ -57,34 +58,14 @@ class JobDetailView extends GetView<JobDetailController> {
           backgroundColor: Colors.white,
           foregroundColor: AppColors.textPrimary,
           elevation: 0,
-          title: Text(
-            roleHeading,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          title: const Text(
+            'Job Details',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () => Get.back(),
           ),
-          actions: [
-            OutlinedButton.icon(
-              onPressed: () {
-                Get.snackbar('Share', 'Share link copied!');
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.border),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                minimumSize: const Size(0, 36),
-              ),
-              icon: const Icon(Icons.share_outlined, size: 16),
-              label: const Text('Share', style: TextStyle(fontSize: 13)),
-            ),
-            const SizedBox(width: 16),
-          ],
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -126,18 +107,36 @@ class JobDetailView extends GetView<JobDetailController> {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.currency_rupee_rounded,
-                      size: 18, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.payments_outlined,
+                    size: 20,
+                    color: Color(0xFFB45309),
+                  ),
                   const SizedBox(width: 6),
-                  Text(
-                    '₹ ${job.wage} / job',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.bold,
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '₹${job.wage}',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFB45309),
+                          ),
                         ),
+                        const TextSpan(
+                          text: ' / job',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF92600A),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -380,87 +379,8 @@ class JobDetailView extends GetView<JobDetailController> {
               ],
             ),
             child: controller.isAdmin.value
-                ? Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Status: ${job.status.toUpperCase()}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            Text(
-                              'Filled ${job.filledSlots} of ${job.totalSlots} slots',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (job.status == 'open')
-                        Flexible(
-                          child: ElevatedButton(
-                            onPressed: controller.cancelJob,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.redAccent,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: const Text('Cancel Job'),
-                          ),
-                        ),
-                    ],
-                  )
-                : Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: controller.applyNow,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.primary,
-                            side: const BorderSide(
-                                color: AppColors.primary, width: 1.5),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          child: const Text(
-                            'Apply Now',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () =>
-                              controller.launchCaller(job.contactPersonPhone),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          icon: const Icon(Icons.call, size: 18),
-                          label: const Text(
-                            'Call HR',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                ? _buildAdminBottomBar(job)
+                : _buildWorkerBottomBar(),
           ),
         ),
       );
@@ -498,6 +418,183 @@ class JobDetailView extends GetView<JobDetailController> {
               color: AppColors.textPrimary,
               fontSize: 13,
               fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Admin Bottom Bar ─────────────────────────────────────────────────
+  Widget _buildAdminBottomBar(JobModel job) {
+    final applicantCount = job.applicants.length;
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: controller.goToApplicants,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            icon: const Icon(Icons.people_outline_rounded, size: 20),
+            label: Text(
+              'Applicants ($applicantCount)',
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+        ),
+        if (job.status == 'open') ...[
+          const SizedBox(width: 12),
+          Expanded(
+            child: OutlinedButton(
+              onPressed: controller.cancelJob,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.redAccent,
+                side: const BorderSide(color: Colors.redAccent, width: 1.5),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: const Text(
+                'Cancel Job',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // ── Worker Bottom Bar ────────────────────────────────────────────────
+  Widget _buildWorkerBottomBar() {
+    final job = controller.job.value!;
+    final state = controller.applyButtonState;
+
+    String label;
+    Color bgColor;
+    Color fgColor;
+    Color borderColor;
+    bool enabled;
+
+    switch (state) {
+      case 'canApply':
+        label = 'Apply Now';
+        bgColor = Colors.transparent;
+        fgColor = AppColors.primary;
+        borderColor = AppColors.primary;
+        enabled = true;
+        break;
+      case 'applying':
+        label = 'Applying...';
+        bgColor = AppColors.primary.withValues(alpha: 0.1);
+        fgColor = AppColors.primary;
+        borderColor = AppColors.primary;
+        enabled = false;
+        break;
+      case 'applied':
+        label = 'Applied ✓';
+        bgColor = const Color(0xFFE0F2F1);
+        fgColor = const Color(0xFF00796B);
+        borderColor = const Color(0xFF00796B);
+        enabled = false;
+        break;
+      case 'jobFull':
+        label = 'Job Full';
+        bgColor = Colors.grey.shade100;
+        fgColor = Colors.grey.shade500;
+        borderColor = Colors.grey.shade300;
+        enabled = false;
+        break;
+      case 'roleMismatch':
+        label = 'No Matching Role';
+        bgColor = Colors.grey.shade100;
+        fgColor = Colors.grey.shade500;
+        borderColor = Colors.grey.shade300;
+        enabled = false;
+        break;
+      case 'cancelled':
+        label = 'Cancelled';
+        bgColor = Colors.red.shade50;
+        fgColor = Colors.redAccent;
+        borderColor = Colors.redAccent.withValues(alpha: 0.3);
+        enabled = false;
+        break;
+      default:
+        label = 'Unavailable';
+        bgColor = Colors.grey.shade100;
+        fgColor = Colors.grey.shade500;
+        borderColor = Colors.grey.shade300;
+        enabled = false;
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: enabled ? controller.applyNow : null,
+            style: OutlinedButton.styleFrom(
+              backgroundColor: bgColor,
+              foregroundColor: fgColor,
+              disabledForegroundColor: fgColor,
+              disabledBackgroundColor: bgColor,
+              side: BorderSide(color: borderColor, width: 1.5),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            child: state == 'applying'
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: fgColor,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        label,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ],
+                  )
+                : Text(
+                    label,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () =>
+                controller.launchCaller(job.contactPersonPhone),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            icon: const Icon(Icons.call, size: 18),
+            label: const Text(
+              'Call HR',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
         ),

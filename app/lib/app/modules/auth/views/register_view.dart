@@ -28,7 +28,7 @@ class RegisterView extends GetView<RegisterController> {
               child: Column(
                 children: [
                   Image.asset(
-                    'lib/app/assets/images/logo.png',
+                    'lib/app/assets/images/logo-selection.png',
                     height: 50,
                   ),
                   const SizedBox(height: 8),

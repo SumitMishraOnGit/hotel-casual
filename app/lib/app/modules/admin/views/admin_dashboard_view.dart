@@ -104,8 +104,6 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                         ),
                         prefixIcon: Icon(Icons.search_rounded,
                             color: Colors.grey.shade400, size: 22),
-                        suffixIcon: const Icon(Icons.tune_rounded,
-                            color: Color(0xFF0F766E), size: 20),
                         border: InputBorder.none,
                         contentPadding:
                             const EdgeInsets.symmetric(vertical: 14),
@@ -116,88 +114,71 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
 
                 // Filter Chips
                 Obx(
-                  () => SizedBox(
-                    height: 38,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: controller.roles.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 8),
-                      itemBuilder: (context, index) {
-                        final role = controller.roles[index];
-                        final isSelected =
-                            controller.selectedRole.value == role;
-                        return GestureDetector(
-                          onTap: () => controller.selectedRole.value = role,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? const Color(0xFF0F766E)
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(100),
-                              boxShadow: [
-                                if (!isSelected)
-                                  BoxShadow(
-                                    color:
-                                        Colors.black.withValues(alpha: 0.03),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
+                  () {
+                    final selectedRole = controller.selectedRole.value;
+                    return SizedBox(
+                      height: 38,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: controller.roles.length,
+                        separatorBuilder: (_, _) => const SizedBox(width: 8),
+                        itemBuilder: (context, index) {
+                          final role = controller.roles[index];
+                          final isSelected = selectedRole == role;
+                          return GestureDetector(
+                            onTap: () => controller.selectedRole.value = role,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? const Color(0xFF0F766E)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(100),
+                                boxShadow: [
+                                  if (!isSelected)
+                                    BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.03),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  role,
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : const Color(0xFF14181F),
+                                    fontSize: 13,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
                                   ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Text(
-                                role,
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? Colors.white
-                                      : const Color(0xFF14181F),
-                                  fontSize: 13,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.w500,
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                          );
+                        },
+                      ),
+                    );
+                  },
                 ),
 
                 // Available Jobs Section Header
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'AVAILABLE JOBS',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.6,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      Row(
-                        children: const [
-                          Text(
-                            'Sort: Nearest',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F766E),
-                            ),
-                          ),
-                          Icon(Icons.arrow_drop_down_rounded,
-                              color: Color(0xFF0F766E), size: 18),
-                        ],
-                      ),
-                    ],
+                  child: Text(
+                    'AVAILABLE JOBS',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.6,
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                 ),
               ],

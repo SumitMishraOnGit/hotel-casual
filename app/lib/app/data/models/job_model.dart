@@ -14,6 +14,7 @@ class JobModel {
   final List<JobTitleEntry> titles; // multiple role/title entries
   final String status; // open / filled / cancelled
   final String createdAt;
+  final Map<String, dynamic> applicants; // { uid: { titleIndex, appliedAt } }
 
   JobModel({
     required this.jobId,
@@ -29,6 +30,7 @@ class JobModel {
     required this.titles,
     required this.status,
     required this.createdAt,
+    this.applicants = const {},
   });
 
   /// Total slots across all title entries
@@ -36,6 +38,16 @@ class JobModel {
 
   /// Filled slots across all title entries
   int get filledSlots => titles.fold(0, (sum, t) => sum + t.slotsFilled);
+
+  /// Check if a specific worker has already applied
+  bool hasWorkerApplied(String uid) => applicants.containsKey(uid);
+
+  /// Check if any title with the given role has available slots
+  bool hasAvailableSlotsForRole(String role) {
+    return titles.any((t) =>
+        t.role.toLowerCase() == role.toLowerCase() &&
+        t.slotsFilled < t.slotsTotal);
+  }
 
   Map<String, dynamic> toJson() => {
     'jobId': jobId,
@@ -51,6 +63,7 @@ class JobModel {
     'titles': titles.map((t) => t.toJson()).toList(),
     'status': status,
     'createdAt': createdAt,
+    'applicants': applicants,
   };
 
   factory JobModel.fromJson(Map<dynamic, dynamic> json) {
@@ -89,6 +102,12 @@ class JobModel {
           .toList();
     }
 
+    // Parse applicants map
+    Map<String, dynamic> applicantsMap = {};
+    if (json['applicants'] != null && json['applicants'] is Map) {
+      applicantsMap = Map<String, dynamic>.from(json['applicants'] as Map);
+    }
+
     return JobModel(
       jobId: json['jobId'] ?? '',
       adminId: json['adminId'] ?? '',
@@ -103,6 +122,7 @@ class JobModel {
       titles: titleList,
       status: json['status'] ?? 'open',
       createdAt: json['createdAt'] ?? '',
+      applicants: applicantsMap,
     );
   }
 

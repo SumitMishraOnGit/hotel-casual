@@ -15,7 +15,7 @@ class SplashView extends GetView<SplashController> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'lib/app/assets/icons/app_icon.png',
+              'lib/app/assets/icons/logo-mark.png',
               width: 140,
               height: 140,
             ),

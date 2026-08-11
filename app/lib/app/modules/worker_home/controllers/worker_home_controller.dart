@@ -9,8 +9,6 @@ class WorkerHomeController extends GetxController {
   final isLoading = true.obs;
 
   final searchQuery = ''.obs;
-  final selectedRole = 'All roles'.obs;
-  final roles = const ['All roles', 'Steward', 'Driver', 'Chef'];
 
   final AuthService _authService = Get.find<AuthService>();
   final JobService _jobService = Get.find<JobService>();
@@ -18,16 +16,10 @@ class WorkerHomeController extends GetxController {
   List<JobModel> get filteredJobs {
     return jobs.where((job) {
       final q = searchQuery.value.toLowerCase().trim();
-      final matchesQuery = q.isEmpty ||
-          job.venueName.toLowerCase().contains(q) ||
+      if (q.isEmpty) return true;
+      return job.venueName.toLowerCase().contains(q) ||
           job.venueAddress.toLowerCase().contains(q) ||
           job.city.toLowerCase().contains(q);
-
-      final role = selectedRole.value;
-      final matchesRole = role == 'All roles' ||
-          job.titles.any((t) => t.role.toLowerCase() == role.toLowerCase());
-
-      return matchesQuery && matchesRole;
     }).toList();
   }
 
