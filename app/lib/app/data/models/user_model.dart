@@ -4,6 +4,7 @@ class UserModel {
   final String name;
   final String role; // 'driver', 'steward', 'chef', 'admin'
   final String city;
+  final int experienceYears;
   final bool available;
   final String createdAt;
 
@@ -13,6 +14,7 @@ class UserModel {
     required this.name,
     required this.role,
     required this.city,
+    this.experienceYears = 0,
     this.available = true,
     required this.createdAt,
   });
@@ -24,6 +26,7 @@ class UserModel {
       'name': name,
       'role': role,
       'city': city,
+      'experienceYears': experienceYears,
       'available': available,
       'createdAt': createdAt,
     };
@@ -36,6 +39,9 @@ class UserModel {
       name: json['name'] ?? '',
       role: json['role'] ?? 'steward',
       city: json['city'] ?? '',
+      experienceYears: json['experienceYears'] is int 
+          ? json['experienceYears'] 
+          : int.tryParse(json['experienceYears']?.toString() ?? '0') ?? 0,
       available: json['available'] ?? true,
       createdAt: json['createdAt'] ?? '',
     );

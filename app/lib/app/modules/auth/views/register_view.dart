@@ -200,7 +200,37 @@ class RegisterView extends GetView<RegisterController> {
                         hintText: 'e.g. Delhi',
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+
+                    // Experience Input (Conditional)
+                    Obx(() {
+                      if (controller.selectedRole.value == 'admin') {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Experience (in years)',
+                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                  color: AppColors.textPrimary,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: controller.experienceController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            validator: controller.validateExperience,
+                            autovalidateMode: AutovalidateMode.onUserInteraction,
+                            decoration: const InputDecoration(
+                              hintText: 'e.g. 2',
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      );
+                    }),
 
                     // Submit Button — disabled until all fields are valid
                     Obx(() {

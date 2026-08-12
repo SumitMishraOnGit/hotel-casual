@@ -38,6 +38,7 @@ class AuthService extends GetxService {
     required String name,
     required String role,
     required String city,
+    int experienceYears = 0,
   }) async {
     // Check for duplicate phone number in /phone_index before hitting Firebase Auth
     final cleaned = phone.replaceAll(RegExp(r'\D'), '');
@@ -59,6 +60,7 @@ class AuthService extends GetxService {
       name: name,
       role: role.toLowerCase(),
       city: city,
+      experienceYears: experienceYears,
       available: true,
       createdAt: DateTime.now().toIso8601String(),
     );

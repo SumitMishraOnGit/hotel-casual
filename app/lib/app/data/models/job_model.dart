@@ -2,6 +2,7 @@ import 'job_title_entry.dart';
 
 class JobModel {
   final String jobId;
+  final int jobNumber; // sequential human-readable ID
   final String adminId;
   final String venueName;
   final String venueAddress;
@@ -18,6 +19,7 @@ class JobModel {
 
   JobModel({
     required this.jobId,
+    this.jobNumber = 0,
     required this.adminId,
     required this.venueName,
     required this.venueAddress,
@@ -32,6 +34,10 @@ class JobModel {
     required this.createdAt,
     this.applicants = const {},
   });
+
+  /// Human-readable job ID in HC-XXXX format
+  String get formattedJobNumber =>
+      'HC-${jobNumber.toString().padLeft(4, '0')}';
 
   /// Total slots across all title entries
   int get totalSlots => titles.fold(0, (sum, t) => sum + t.slotsTotal);
@@ -51,6 +57,7 @@ class JobModel {
 
   Map<String, dynamic> toJson() => {
     'jobId': jobId,
+    'jobNumber': jobNumber,
     'adminId': adminId,
     'venueName': venueName,
     'venueAddress': venueAddress,
@@ -110,6 +117,7 @@ class JobModel {
 
     return JobModel(
       jobId: json['jobId'] ?? '',
+      jobNumber: _toInt(json['jobNumber']),
       adminId: json['adminId'] ?? '',
       venueName: json['venueName'] ?? '',
       venueAddress: json['venueAddress'] ?? '',

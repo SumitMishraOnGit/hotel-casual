@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../data/models/job_model.dart';
+import '../../../core/widgets/worker_bottom_nav.dart';
+import '../../../core/widgets/worker_job_card.dart';
 import '../controllers/worker_home_controller.dart';
 
 class WorkerHomeView extends GetView<WorkerHomeController> {
@@ -16,6 +17,7 @@ class WorkerHomeView extends GetView<WorkerHomeController> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      bottomNavigationBar: const WorkerBottomNav(currentIndex: 0),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F766E),
         foregroundColor: Colors.white,
@@ -57,10 +59,55 @@ class WorkerHomeView extends GetView<WorkerHomeController> {
                 color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: IconButton(
-                icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
-                tooltip: 'Logout',
-                onPressed: controller.logout,
+              child: PopupMenuButton<String>(
+                icon: const Icon(Icons.person_outline_rounded, color: Colors.white, size: 22),
+                color: AppColors.cardSurface,
+                offset: const Offset(0, 40),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                onSelected: (value) {
+                  if (value == 'my_jobs') {
+                    controller.goToMyJobs();
+                  } else if (value == 'profile') {
+                    controller.goToProfile();
+                  } else if (value == 'logout') {
+                    controller.logout();
+                  }
+                },
+                itemBuilder: (BuildContext context) => [
+                  PopupMenuItem<String>(
+                    value: 'my_jobs',
+                    child: Row(
+                      children: [
+                        Icon(Icons.work_history_rounded, size: 20, color: AppColors.primary),
+                        const SizedBox(width: 12),
+                        const Text('My Jobs'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'profile',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_rounded, size: 20, color: AppColors.primary),
+                        const SizedBox(width: 12),
+                        const Text('Profile'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  PopupMenuItem<String>(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout_rounded, size: 20, color: Colors.red.shade400),
+                        const SizedBox(width: 12),
+                        Text('Logout', style: TextStyle(color: Colors.red.shade600)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -174,7 +221,7 @@ class WorkerHomeView extends GetView<WorkerHomeController> {
                   separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final job = filtered[index];
-                    return _WorkerJobCard(
+                    return WorkerJobCard(
                       job: job,
                       onTap: () => controller.goToJobDetail(job),
                     );
@@ -188,240 +235,3 @@ class WorkerHomeView extends GetView<WorkerHomeController> {
     );
   }
 }
-
-class _WorkerJobCard extends StatelessWidget {
-  final JobModel job;
-  final VoidCallback onTap;
-
-  const _WorkerJobCard({
-    required this.job,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isCancelled = job.status == 'cancelled';
-    final primaryRole =
-        job.titles.isNotEmpty ? job.titles.first.role : 'Staff';
-    final openSlots = job.totalSlots - job.filledSlots;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Opacity(
-        opacity: isCancelled ? 0.5 : 1.0,
-        child: Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: isCancelled
-                ? Border.all(color: const Color(0xFF14181F).withValues(alpha: 0.12))
-                : null,
-            boxShadow: isCancelled
-                ? []
-                : [
-                    BoxShadow(
-                      color: const Color(0xFF14181F).withValues(alpha: 0.06),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                    BoxShadow(
-                      color: const Color(0xFF14181F).withValues(alpha: 0.05),
-                      blurRadius: 24,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Venue name & status badge
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      job.venueName,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
-                        height: 1.2,
-                        color: isCancelled
-                            ? const Color(0xFF6B7280)
-                            : const Color(0xFF14181F),
-                      ),
-                    ),
-                  ),
-                  if (isCancelled)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6B7280).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: const Text(
-                        'Cancelled',
-                        style: TextStyle(
-                          color: Color(0xFF4B5563),
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Role chip
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: isCancelled
-                      ? const Color(0xFF6B7280).withValues(alpha: 0.1)
-                      : const Color(0xFFF59E0B).withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Text(
-                  primaryRole.capitalizeFirst ?? primaryRole,
-                  style: TextStyle(
-                    color: isCancelled
-                        ? const Color(0xFF6B7280)
-                        : const Color(0xFFB45309),
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Two stat boxes
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatBox(
-                      label: 'Wage / job',
-                      value: '₹${job.wage}',
-                      bg: isCancelled
-                          ? const Color(0xFFF3F4F6)
-                          : const Color(0xFFF59E0B).withValues(alpha: 0.10),
-                      labelColor: isCancelled
-                          ? const Color(0xFF6B7280)
-                          : const Color(0xFF92600A),
-                      valueColor: isCancelled
-                          ? const Color(0xFF4B5563)
-                          : const Color(0xFFB45309),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _StatBox(
-                      label: 'Open slots',
-                      value: '$openSlots',
-                      bg: isCancelled
-                          ? const Color(0xFFF3F4F6)
-                          : const Color(0xFF0F766E).withValues(alpha: 0.08),
-                      labelColor: isCancelled
-                          ? const Color(0xFF6B7280)
-                          : const Color(0xFF0F766E),
-                      valueColor: isCancelled
-                          ? const Color(0xFF4B5563)
-                          : const Color(0xFF0F766E),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              // Divider
-              Container(
-                height: 1,
-                color: const Color(0xFF14181F).withValues(alpha: 0.08),
-              ),
-              const SizedBox(height: 14),
-
-              // Footer: location + date
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '📍 ${job.venueAddress}, ${job.city}',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w500,
-                        height: 1.4,
-                        color: const Color(0xFF14181F).withValues(alpha: 0.55),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '📅 ${job.date}',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w500,
-                      height: 1.4,
-                      color: const Color(0xFF14181F).withValues(alpha: 0.55),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatBox extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color bg;
-  final Color labelColor;
-  final Color valueColor;
-
-  const _StatBox({
-    required this.label,
-    required this.value,
-    required this.bg,
-    required this.labelColor,
-    required this.valueColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label.toUpperCase(),
-            style: TextStyle(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.4,
-              color: labelColor,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              height: 1.2,
-              color: valueColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-

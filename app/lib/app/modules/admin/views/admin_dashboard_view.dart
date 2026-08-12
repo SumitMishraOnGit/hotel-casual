@@ -49,6 +49,45 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
           ],
         ),
         actions: [
+          Obx(() {
+            final unread = controller.unreadNotifCount;
+            return Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
+                    onPressed: controller.openNotificationsSheet,
+                    tooltip: 'Admin Alerts',
+                  ),
+                ),
+                if (unread > 0)
+                  Positioned(
+                    right: 4,
+                    top: 4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.redAccent,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '$unread',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }),
+          const SizedBox(width: 8),
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Container(
@@ -56,10 +95,43 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                 color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: IconButton(
-                icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
-                tooltip: 'Logout',
-                onPressed: controller.logout,
+              child: PopupMenuButton<String>(
+                icon: const Icon(Icons.person_outline_rounded, color: Colors.white, size: 22),
+                color: AppColors.cardSurface,
+                offset: const Offset(0, 40),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                onSelected: (value) {
+                  if (value == 'profile') {
+                    controller.goToProfile();
+                  } else if (value == 'logout') {
+                    controller.confirmLogout();
+                  }
+                },
+                itemBuilder: (BuildContext context) => [
+                  PopupMenuItem<String>(
+                    value: 'profile',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_rounded, size: 20, color: AppColors.primary),
+                        const SizedBox(width: 12),
+                        const Text('Profile'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  PopupMenuItem<String>(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout_rounded, size: 20, color: Colors.red.shade400),
+                        const SizedBox(width: 12),
+                        Text('Logout', style: TextStyle(color: Colors.red.shade600)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -443,19 +515,35 @@ class _JobCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Cancel Job?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 24),
+            SizedBox(width: 10),
+            Text('Cancel Job?'),
+          ],
+        ),
         content: Text(
-            'Are you sure you want to cancel the job at ${job.venueName}?'),
+          'Are you sure you want to cancel the job at ${job.venueName}? All accepted workers will be notified about this cancellation. This action cannot be undone.',
+          style: const TextStyle(height: 1.4),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Get.back(), child: const Text('No')),
-          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Keep Job'),
+          ),
+          ElevatedButton(
             onPressed: () {
               Get.back();
               Get.find<AdminDashboardController>().cancelJob(job.jobId);
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-            child: const Text('Yes, Cancel'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Yes, Cancel Job'),
           ),
         ],
       ),

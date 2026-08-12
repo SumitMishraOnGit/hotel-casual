@@ -17,6 +17,12 @@ import '../modules/job_detail/bindings/job_detail_binding.dart';
 import '../modules/job_detail/views/job_detail_view.dart';
 import '../modules/applicants/bindings/applicants_binding.dart';
 import '../modules/applicants/views/applicants_view.dart';
+import '../modules/profile/bindings/profile_binding.dart';
+import '../modules/profile/views/profile_view.dart';
+import '../modules/my_jobs/bindings/my_jobs_binding.dart';
+import '../modules/my_jobs/views/my_jobs_view.dart';
+import '../modules/notifications/bindings/notifications_binding.dart';
+import '../modules/notifications/views/notifications_view.dart';
 
 class AppPages {
   static const initial = Routes.splash;
@@ -61,6 +67,21 @@ class AppPages {
       name: Routes.applicants,
       page: () => const ApplicantsView(),
       binding: ApplicantsBinding(),
+    ),
+    GetPage(
+      name: Routes.profile,
+      page: () => const ProfileView(),
+      binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: Routes.myJobs,
+      page: () => const MyJobsView(),
+      binding: MyJobsBinding(),
+    ),
+    GetPage(
+      name: Routes.notifications,
+      page: () => const NotificationsView(),
+      binding: NotificationsBinding(),
     ),
   ];
 }

@@ -9,6 +9,7 @@ class RegisterController extends GetxController {
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final cityController = TextEditingController();
+  final experienceController = TextEditingController();
 
   final selectedRole = 'steward'.obs;
   final isPasswordVisible = false.obs;
@@ -25,6 +26,7 @@ class RegisterController extends GetxController {
     phoneController.addListener(_checkFormValidity);
     passwordController.addListener(_checkFormValidity);
     cityController.addListener(_checkFormValidity);
+    experienceController.addListener(_checkFormValidity);
   }
 
   void _checkFormValidity() {
@@ -32,10 +34,15 @@ class RegisterController extends GetxController {
     final phone = phoneController.text.trim();
     final password = passwordController.text.trim();
     final city = cityController.text.trim();
+    final isWorker = selectedRole.value != 'admin';
+    final expStr = experienceController.text.trim();
+    final expValid = !isWorker || (expStr.isNotEmpty && int.tryParse(expStr) != null);
+
     isFormValid.value = name.length >= 2 &&
         RegExp(r'^[6-9]\d{9}$').hasMatch(phone) &&
         password.length >= 6 &&
-        city.isNotEmpty;
+        city.isNotEmpty &&
+        expValid;
   }
 
   @override
@@ -44,11 +51,13 @@ class RegisterController extends GetxController {
     phoneController.dispose();
     passwordController.dispose();
     cityController.dispose();
+    experienceController.dispose();
     super.onClose();
   }
 
   void setRole(String role) {
     selectedRole.value = role.toLowerCase();
+    _checkFormValidity();
   }
 
   void togglePasswordVisibility() {
@@ -80,6 +89,14 @@ class RegisterController extends GetxController {
     return null;
   }
 
+  String? validateExperience(String? value) {
+    if (selectedRole.value == 'admin') return null;
+    if (value == null || value.trim().isEmpty) return 'Experience is required';
+    final parsed = int.tryParse(value.trim());
+    if (parsed == null || parsed < 0) return 'Enter a valid number of years';
+    return null;
+  }
+
   void register() async {
     if (!formKey.currentState!.validate()) return;
 
@@ -87,6 +104,8 @@ class RegisterController extends GetxController {
     final phone = phoneController.text.trim();
     final password = passwordController.text.trim();
     final city = cityController.text.trim();
+    final expStr = experienceController.text.trim();
+    final expYears = int.tryParse(expStr) ?? 0;
 
     isLoading.value = true;
 
@@ -97,6 +116,7 @@ class RegisterController extends GetxController {
         name: name,
         role: selectedRole.value,
         city: city,
+        experienceYears: expYears,
       );
 
       Get.snackbar(

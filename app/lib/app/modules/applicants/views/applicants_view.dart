@@ -226,6 +226,16 @@ class _ApplicantCard extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+                if (applicant.appliedAt.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    _formatTimestamp(applicant.appliedAt),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -291,6 +301,33 @@ class _ApplicantCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatTimestamp(String isoString) {
+    if (isoString.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(isoString).toLocal();
+      final diff = DateTime.now().difference(dt);
+      if (diff.inHours < 24) {
+        if (diff.inMinutes < 1) return 'Just now';
+        if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+        return '${diff.inHours}h ago';
+      }
+
+      final monthNames = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      final day = dt.day;
+      final month = monthNames[dt.month - 1];
+      final hour = dt.hour == 0 ? 12 : (dt.hour > 12 ? dt.hour - 12 : dt.hour);
+      final minute = dt.minute.toString().padLeft(2, '0');
+      final period = dt.hour >= 12 ? 'PM' : 'AM';
+
+      return '$day $month, $hour:$minute $period';
+    } catch (_) {
+      return '';
+    }
   }
 
   String _getInitials(String name) {

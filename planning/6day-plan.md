@@ -47,6 +47,7 @@
 - **W4 Notifications** (in-app): write notif docs on key events; bell list, read/unread.
 - **W5 Worker Profile/Settings**: view, edit, logout, availability.
 - Admin logout (app-bar menu). Loaders, empty states, form validation everywhere.
+- **TODO**: Clear system notification tray on logout & suppress historical notification popups on login (`NotificationService`).
 - ✅ Done when: notifications show up, profiles editable, logout works.
 
 ### Day 6 — Migrate to client Firebase, test, build

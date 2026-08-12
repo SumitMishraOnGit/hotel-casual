@@ -186,6 +186,7 @@ Auth is the gate → admin creates the data → worker consumes it. Build in tha
 - Worker + admin profile/settings: view, edit, logout.
 - Worker availability toggle.
 - Loaders + empty states everywhere.
+- **TODO**: Clear system notification tray on logout & suppress historical notification popups on login (`NotificationService`).
 - ✅ **Done when:** notifications show up and profiles are editable.
 
 ### Day 6 — Polish, edge cases, test, build

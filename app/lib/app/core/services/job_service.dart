@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../data/models/job_model.dart';
 import '../../data/models/job_applicant.dart';
 import '../../data/models/user_model.dart';
+import 'notification_service.dart';
 
 /// Result of an apply-to-job transaction
 enum ApplyResult { success, alreadyApplied, jobFull, roleMismatch, error }
@@ -12,10 +13,19 @@ class JobService extends GetxService {
 
   // Create a new job — returns the generated jobId
   Future<String> createJob(JobModel job) async {
+    // Atomically get next job number
+    final counterRef = _db.child('counters/jobNumber');
+    final txResult = await counterRef.runTransaction((currentData) {
+      final current = (currentData as int?) ?? 0;
+      return Transaction.success(current + 1);
+    });
+    final nextJobNumber = (txResult.snapshot.value as int?) ?? 1;
+
     final ref = _db.child('jobs').push();
     final jobId = ref.key!;
     final jobWithId = JobModel(
       jobId: jobId,
+      jobNumber: nextJobNumber,
       adminId: job.adminId,
       venueName: job.venueName,
       venueAddress: job.venueAddress,
@@ -30,7 +40,33 @@ class JobService extends GetxService {
       createdAt: DateTime.now().toIso8601String(),
     );
     await ref.set(jobWithId.toJson());
+    _notifyMatchingWorkers(jobId, jobWithId);
     return jobId;
+  }
+
+  void _notifyMatchingWorkers(String jobId, JobModel job) async {
+    try {
+      final roles = job.titles.map((t) => t.role.toLowerCase()).toSet();
+      final usersSnapshot = await _db.child('users').get();
+      if (!usersSnapshot.exists || usersSnapshot.value == null) return;
+
+      final users = Map<dynamic, dynamic>.from(usersSnapshot.value as Map);
+      final notifService = Get.find<NotificationService>();
+
+      for (final entry in users.entries) {
+        final userData = Map<dynamic, dynamic>.from(entry.value as Map);
+        final userRole = (userData['role'] ?? '').toString().toLowerCase();
+        if (userRole != 'admin' && roles.contains(userRole)) {
+          notifService.sendNotification(
+            userId: entry.key.toString(),
+            title: 'New Job Available! 🆕',
+            body: '${job.venueName} is looking for ${userRole}s — ₹${job.wage}/day on ${job.date}.',
+            type: 'new_job',
+            jobId: jobId,
+          );
+        }
+      }
+    } catch (_) {}
   }
 
   // Real-time stream of all jobs posted by a specific admin
@@ -71,9 +107,42 @@ class JobService extends GetxService {
     });
   }
 
+  // Real-time stream of all jobs a worker has applied to
+  Stream<List<JobModel>> streamWorkerJobs(String workerUid) {
+    return _db.child('jobs').onValue.map((event) {
+      if (!event.snapshot.exists || event.snapshot.value == null) return [];
+      final raw = Map<dynamic, dynamic>.from(event.snapshot.value as Map);
+      final jobs = raw.values
+          .map((v) => JobModel.fromJson(Map<dynamic, dynamic>.from(v as Map)))
+          .where((j) => j.hasWorkerApplied(workerUid))
+          .toList();
+      // Sort newest first
+      jobs.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return jobs;
+    });
+  }
+
   // Cancel a job
   Future<void> cancelJob(String jobId) async {
-    await _db.child('jobs').child(jobId).update({'status': 'cancelled'});
+    final snapshot = await _db.child('jobs').child(jobId).get();
+    if (snapshot.exists && snapshot.value != null) {
+      final jobMap = Map<dynamic, dynamic>.from(snapshot.value as Map);
+      final job = JobModel.fromJson(jobMap);
+
+      await _db.child('jobs').child(jobId).update({'status': 'cancelled'});
+
+      // Notify all applicants
+      final notifService = Get.find<NotificationService>();
+      for (final uid in job.applicants.keys) {
+        notifService.sendNotification(
+          userId: uid,
+          title: 'Job Cancelled 🔴',
+          body: 'Job ${job.formattedJobNumber} at ${job.venueName} was cancelled by admin.',
+          type: 'job_cancelled',
+          jobId: jobId,
+        );
+      }
+    }
   }
 
   // ── Apply-to-Job Transaction ─────────────────────────────────────────
@@ -162,6 +231,7 @@ class JobService extends GetxService {
       });
 
       if (result.committed) {
+        _sendApplyNotifications(jobId, worker);
         return ApplyResult.success;
       }
 
@@ -171,6 +241,45 @@ class JobService extends GetxService {
     } catch (e) {
       return ApplyResult.error;
     }
+  }
+
+  void _sendApplyNotifications(String jobId, UserModel worker) async {
+    try {
+      final snapshot = await _db.child('jobs').child(jobId).get();
+      if (!snapshot.exists || snapshot.value == null) return;
+      final jobMap = Map<dynamic, dynamic>.from(snapshot.value as Map);
+      final job = JobModel.fromJson(jobMap);
+      final notifService = Get.find<NotificationService>();
+
+      final appData = job.applicants[worker.uid];
+      String roleTitle = worker.role;
+      if (appData is Map) {
+        final idx = _toInt(appData['titleIndex']);
+        if (idx >= 0 && idx < job.titles.length) {
+          roleTitle = job.titles[idx].title;
+        }
+      }
+
+      // Notify Worker
+      notifService.sendNotification(
+        userId: worker.uid,
+        title: 'Application Accepted! 🎉',
+        body: 'You secured a slot for $roleTitle in ${job.formattedJobNumber} at ${job.venueName}.',
+        type: 'application_accepted',
+        jobId: jobId,
+      );
+
+      // Notify Admin
+      if (job.adminId.isNotEmpty) {
+        notifService.sendNotification(
+          userId: job.adminId,
+          title: 'New Applicant! 📋',
+          body: '${worker.name} applied for $roleTitle in ${job.formattedJobNumber}.',
+          type: 'new_applicant',
+          jobId: jobId,
+        );
+      }
+    } catch (_) {}
   }
 
   /// After a transaction abort, determine the specific reason by reading
