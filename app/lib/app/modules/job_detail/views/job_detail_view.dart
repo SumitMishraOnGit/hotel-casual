@@ -180,7 +180,50 @@ class JobDetailView extends GetView<JobDetailController> {
                       textColor: AppColors.textPrimary),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+
+              // ── City Mismatch Warning Card ───────────────────────────
+              if (controller.isCityMismatch) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.warning_amber_rounded,
+                          color: Color(0xFFD97706), size: 24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF92400E),
+                              height: 1.4,
+                            ),
+                            children: [
+                              const TextSpan(
+                                text: 'City Mismatch Warning:\n',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(
+                                text:
+                                    'This job is in ${job.city}, but your registered city is ${controller.userCity}. Please ensure you can travel to the venue.',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // ── Job Highlights / Summary Card ───────────────────────
               Container(

@@ -1,14 +1,14 @@
 {
   "project_info": {
-    "project_number": "687558074160",
-    "firebase_url": "https://hotel-casual-default-rtdb.firebaseio.com",
-    "project_id": "hotel-casual",
-    "storage_bucket": "hotel-casual.firebasestorage.app"
+    "project_number": "748420840796",
+    "firebase_url": "https://hotel-casual-demo-default-rtdb.firebaseio.com",
+    "project_id": "hotel-casual-demo",
+    "storage_bucket": "hotel-casual-demo.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:687558074160:android:d03baab985e74558e972f5",
+        "mobilesdk_app_id": "1:748420840796:android:314d0a6e3525b62fe75599",
         "android_client_info": {
           "package_name": "com.example.app"
         }
@@ -16,7 +16,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBEHVfDsfiP9sZ5hdnfsD0XgDN2-6Topgw"
+          "current_key": "AIzaSyDebxF5bMSGbu-y3jnllYLntTzfkurySu4"
         }
       ],
       "services": {

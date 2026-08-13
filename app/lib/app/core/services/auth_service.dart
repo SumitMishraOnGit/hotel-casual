@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:get/get.dart';
 import '../../data/models/user_model.dart';
+import 'notification_service.dart';
 
 class AuthService extends GetxService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -108,6 +109,14 @@ class AuthService extends GetxService {
 
   // Sign out
   Future<void> logout() async {
+    final uid = currentUser.value?.uid;
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        if (Get.isRegistered<NotificationService>()) {
+          await Get.find<NotificationService>().clearFcmToken(uid);
+        }
+      } catch (_) {}
+    }
     await _auth.signOut();
     currentUser.value = null;
   }

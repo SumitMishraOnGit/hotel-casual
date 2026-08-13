@@ -1,0 +1,20 @@
+# Flutter & Android build artifacts
+build/
+app/build/
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+
+# Node.js / Cloud Functions
+node_modules/
+functions/node_modules/
+firebase-debug.log
+firebase-debug.*.log
+
+# IDE & OS files
+.vscode/
+.idea/
+*.iml
+.DS_Store
+*.log

@@ -1,0 +1,22 @@
+{
+  "name": "hotel-casual-functions",
+  "scripts": {
+    "serve": "firebase serve --only functions",
+    "shell": "firebase shell",
+    "start": "firebase shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^13.1.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.4.0"
+  },
+  "private": true
+}

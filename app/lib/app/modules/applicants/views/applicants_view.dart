@@ -111,6 +111,7 @@ class ApplicantsView extends GetView<ApplicantsController> {
             final applicant = controller.applicants[index];
             return _ApplicantCard(
               applicant: applicant,
+              jobCity: controller.job.city,
               onCall: () => controller.launchCaller(applicant.phone),
             );
           },
@@ -122,10 +123,12 @@ class ApplicantsView extends GetView<ApplicantsController> {
 
 class _ApplicantCard extends StatelessWidget {
   final JobApplicant applicant;
+  final String jobCity;
   final VoidCallback onCall;
 
   const _ApplicantCard({
     required this.applicant,
+    required this.jobCity,
     required this.onCall,
   });
 
@@ -233,6 +236,40 @@ class _ApplicantCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+                if (applicant.city.trim().isNotEmpty &&
+                    jobCity.trim().isNotEmpty &&
+                    applicant.city.trim().toLowerCase() !=
+                        jobCity.trim().toLowerCase()) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFFFDE68A)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.warning_amber_rounded,
+                            size: 13, color: Color(0xFFD97706)),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            'Diff City: ${applicant.city} (Job: $jobCity)',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF92400E),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

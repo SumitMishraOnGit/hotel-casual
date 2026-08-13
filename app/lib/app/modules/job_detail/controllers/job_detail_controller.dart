@@ -39,6 +39,16 @@ class JobDetailController extends GetxController {
     }
   }
 
+  String get userCity => _authService.currentUser.value?.city ?? '';
+
+  bool get isCityMismatch {
+    if (isAdmin.value) return false;
+    final currentJob = job.value;
+    final uCity = userCity.trim().toLowerCase();
+    final jCity = currentJob?.city.trim().toLowerCase() ?? '';
+    return uCity.isNotEmpty && jCity.isNotEmpty && uCity != jCity;
+  }
+
   Future<void> _checkAppliedStatus() async {
     final currentJob = job.value;
     final currentUser = _authService.currentUser.value;

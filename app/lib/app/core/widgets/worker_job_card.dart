@@ -180,16 +180,22 @@ class WorkerJobCard extends StatelessWidget {
                   Expanded(
                     child: _StatBox(
                       label: 'Open slots',
-                      value: '$openSlots',
+                      value: openSlots <= 0 ? '0 (Full)' : '$openSlots',
                       bg: isCancelled
                           ? const Color(0xFFF3F4F6)
-                          : const Color(0xFF0F766E).withValues(alpha: 0.08),
+                          : (openSlots <= 0
+                              ? const Color(0xFFFEF2F2)
+                              : const Color(0xFF0F766E).withValues(alpha: 0.08)),
                       labelColor: isCancelled
                           ? const Color(0xFF6B7280)
-                          : const Color(0xFF0F766E),
+                          : (openSlots <= 0
+                              ? const Color(0xFFDC2626)
+                              : const Color(0xFF0F766E)),
                       valueColor: isCancelled
                           ? const Color(0xFF4B5563)
-                          : const Color(0xFF0F766E),
+                          : (openSlots <= 0
+                              ? const Color(0xFFDC2626)
+                              : const Color(0xFF0F766E)),
                     ),
                   ),
                 ],

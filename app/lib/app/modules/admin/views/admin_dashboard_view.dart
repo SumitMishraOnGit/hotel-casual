@@ -12,6 +12,9 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
   @override
   Widget build(BuildContext context) {
     final user = Get.find<AuthService>().currentUser.value;
+    final fullName = (user?.name != null && user!.name.trim().isNotEmpty)
+        ? user.name
+        : 'Admin';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -39,12 +42,14 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             ),
             const SizedBox(height: 2),
             Text(
-              (user?.name.split(' ').first) ?? 'Admin',
+              fullName,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
-                fontSize: 24,
+                fontSize: 22,
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ],
         ),
@@ -454,16 +459,22 @@ class _JobCard extends StatelessWidget {
                   Expanded(
                     child: _StatBox(
                       label: 'Open slots',
-                      value: '$openSlots',
+                      value: openSlots <= 0 ? '0 (Full)' : '$openSlots',
                       bg: isCancelled
                           ? const Color(0xFFF3F4F6)
-                          : const Color(0xFF0F766E).withValues(alpha: 0.08),
+                          : (openSlots <= 0
+                              ? const Color(0xFFFEF2F2)
+                              : const Color(0xFF0F766E).withValues(alpha: 0.08)),
                       labelColor: isCancelled
                           ? const Color(0xFF6B7280)
-                          : const Color(0xFF0F766E),
+                          : (openSlots <= 0
+                              ? const Color(0xFFDC2626)
+                              : const Color(0xFF0F766E)),
                       valueColor: isCancelled
                           ? const Color(0xFF4B5563)
-                          : const Color(0xFF0F766E),
+                          : (openSlots <= 0
+                              ? const Color(0xFFDC2626)
+                              : const Color(0xFF0F766E)),
                     ),
                   ),
                 ],

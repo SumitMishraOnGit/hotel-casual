@@ -13,7 +13,9 @@ class WorkerHomeView extends GetView<WorkerHomeController> {
   Widget build(BuildContext context) {
     final authService = Get.find<AuthService>();
     final user = authService.currentUser.value;
-    final firstName = user?.name.split(' ').first ?? 'User';
+    final fullName = (user?.name != null && user!.name.trim().isNotEmpty)
+        ? user.name
+        : 'User';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -42,12 +44,14 @@ class WorkerHomeView extends GetView<WorkerHomeController> {
             ),
             const SizedBox(height: 2),
             Text(
-              firstName,
+              fullName,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
-                fontSize: 24,
+                fontSize: 22,
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ],
         ),

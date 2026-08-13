@@ -7,6 +7,7 @@ class UserModel {
   final int experienceYears;
   final bool available;
   final String createdAt;
+  final String? fcmToken;
 
   UserModel({
     required this.uid,
@@ -17,6 +18,7 @@ class UserModel {
     this.experienceYears = 0,
     this.available = true,
     required this.createdAt,
+    this.fcmToken,
   });
 
   Map<String, dynamic> toJson() {
@@ -29,6 +31,7 @@ class UserModel {
       'experienceYears': experienceYears,
       'available': available,
       'createdAt': createdAt,
+      if (fcmToken != null) 'fcmToken': fcmToken,
     };
   }
 
@@ -44,6 +47,8 @@ class UserModel {
           : int.tryParse(json['experienceYears']?.toString() ?? '0') ?? 0,
       available: json['available'] ?? true,
       createdAt: json['createdAt'] ?? '',
+      fcmToken: json['fcmToken']?.toString(),
     );
   }
 }
+
