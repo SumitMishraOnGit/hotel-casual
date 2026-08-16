@@ -41,6 +41,23 @@ class JobDetailController extends GetxController {
 
   String get userCity => _authService.currentUser.value?.city ?? '';
 
+  bool get isJobDatePast {
+    final dateStr = job.value?.date ?? '';
+    try {
+      final parts = dateStr.split('-');
+      if (parts.length != 3) return false;
+      final jobDate = DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+      final today = DateTime.now();
+      return jobDate.isBefore(DateTime(today.year, today.month, today.day));
+    } catch (_) {
+      return false;
+    }
+  }
+
   bool get isCityMismatch {
     if (isAdmin.value) return false;
     final currentJob = job.value;
@@ -77,6 +94,7 @@ class JobDetailController extends GetxController {
     final currentUser = _authService.currentUser.value;
     if (currentJob == null || currentUser == null) return 'error';
     if (currentJob.status == 'cancelled') return 'cancelled';
+    if (isJobDatePast) return 'datePassed';
     if (hasApplied.value) return 'applied';
     if (isApplying.value) return 'applying';
 
@@ -197,8 +215,90 @@ class JobDetailController extends GetxController {
     }
   }
 
-  void cancelJob() {
-    Get.back();
-    Get.snackbar('Cancel Job', 'Cancel functionality is managed on the dashboard');
+  final isCancelling = false.obs;
+
+  Future<void> cancelJob() async {
+    final currentJob = job.value;
+    if (currentJob == null) return;
+
+    // Confirmation dialog
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 28),
+            SizedBox(width: 10),
+            Text('Cancel Job?'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to cancel ${currentJob.formattedJobNumber} at ${currentJob.venueName}?\n\nAll accepted workers will be notified.',
+          style: const TextStyle(height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('No, Keep It'),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.back(result: true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text('Yes, Cancel Job'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+
+    if (confirmed != true) return;
+
+    isCancelling.value = true;
+    try {
+      await _jobService.cancelJob(currentJob.jobId);
+      // Update local state so UI reflects immediately
+      job.value = JobModel(
+        jobId: currentJob.jobId,
+        jobNumber: currentJob.jobNumber,
+        adminId: currentJob.adminId,
+        venueName: currentJob.venueName,
+        venueAddress: currentJob.venueAddress,
+        city: currentJob.city,
+        date: currentJob.date,
+        wage: currentJob.wage,
+        description: currentJob.description,
+        contactPersonName: currentJob.contactPersonName,
+        contactPersonPhone: currentJob.contactPersonPhone,
+        titles: currentJob.titles,
+        applicants: currentJob.applicants,
+        status: 'cancelled',
+        createdAt: currentJob.createdAt,
+      );
+      Get.snackbar(
+        'Job Cancelled',
+        '${currentJob.formattedJobNumber} has been cancelled and workers notified.',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
+    } catch (_) {
+      Get.snackbar(
+        'Error',
+        'Could not cancel the job. Please try again.',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
+    } finally {
+      isCancelling.value = false;
+    }
   }
 }

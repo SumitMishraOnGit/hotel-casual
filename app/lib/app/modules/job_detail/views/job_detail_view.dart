@@ -170,8 +170,15 @@ class JobDetailView extends GetView<JobDetailController> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _buildChip('New Job',
-                      color: Colors.purple.shade50, textColor: Colors.purple),
+                  if (controller.isJobDatePast)
+                    _buildChip(
+                      '📅 Date Passed',
+                      color: Colors.red.shade50,
+                      textColor: Colors.red.shade700,
+                    )
+                  else
+                    _buildChip('New Job',
+                        color: Colors.purple.shade50, textColor: Colors.purple),
                   _buildChip('${job.totalSlots} Vacancies',
                       color: Colors.blue.shade50,
                       textColor: Colors.blue.shade800),
@@ -515,24 +522,39 @@ class JobDetailView extends GetView<JobDetailController> {
             ),
           ),
         ),
-        if (job.status == 'open') ...[
+        if (job.status == 'open' && !controller.isJobDatePast) ...[
           const SizedBox(width: 12),
           Expanded(
-            child: OutlinedButton(
-              onPressed: controller.cancelJob,
+            child: Obx(() => OutlinedButton(
+              onPressed: controller.isCancelling.value ? null : controller.cancelJob,
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.redAccent,
-                side: const BorderSide(color: Colors.redAccent, width: 1.5),
+                disabledForegroundColor: Colors.redAccent.withValues(alpha: 0.5),
+                side: BorderSide(
+                  color: controller.isCancelling.value
+                      ? Colors.redAccent.withValues(alpha: 0.4)
+                      : Colors.redAccent,
+                  width: 1.5,
+                ),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: const Text(
-                'Cancel Job',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-            ),
+              child: controller.isCancelling.value
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.redAccent,
+                      ),
+                    )
+                  : const Text(
+                      'Cancel Job',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+            )),
           ),
         ],
       ],
@@ -584,6 +606,13 @@ class JobDetailView extends GetView<JobDetailController> {
         bgColor = Colors.grey.shade100;
         fgColor = Colors.grey.shade500;
         borderColor = Colors.grey.shade300;
+        enabled = false;
+        break;
+      case 'datePassed':
+        label = 'Date Passed';
+        bgColor = Colors.red.shade50;
+        fgColor = Colors.red.shade700;
+        borderColor = Colors.red.shade200;
         enabled = false;
         break;
       case 'cancelled':
