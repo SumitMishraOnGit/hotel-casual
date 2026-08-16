@@ -13,9 +13,7 @@ class NotificationService extends GetxService {
       FlutterLocalNotificationsPlugin();
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
 
-  StreamSubscription? _rtdbSubscription;
   StreamSubscription? _tokenRefreshSubscription;
-  final Set<String> _notifiedIds = {};
 
   @override
   void onInit() {
@@ -28,17 +26,12 @@ class NotificationService extends GetxService {
 
     // Handle user already logged in at startup
     if (authService.currentUser.value != null) {
-      _listenToUserNotifications(authService.currentUser.value!.uid);
       saveFcmToken(authService.currentUser.value!.uid);
     }
 
     ever(authService.currentUser, (user) {
       if (user != null) {
-        _listenToUserNotifications(user.uid);
         saveFcmToken(user.uid);
-      } else {
-        _rtdbSubscription?.cancel();
-        _notifiedIds.clear();
       }
     });
   }
@@ -131,8 +124,6 @@ class NotificationService extends GetxService {
   Future<void> clearFcmToken(String uid) async {
     try {
       _tokenRefreshSubscription?.cancel();
-      _rtdbSubscription?.cancel();
-      _notifiedIds.clear();
       if (uid.isNotEmpty) {
         await _db.child('users').child(uid).child('fcmToken').remove();
       }
@@ -177,69 +168,7 @@ class NotificationService extends GetxService {
     } catch (_) {}
   }
 
-  void _listenToUserNotifications(String uid) {
-    _rtdbSubscription?.cancel();
-    final ref = _db.child('notifications').child(uid);
 
-    // Record listener start time (with 5-second safety margin for network delay)
-    final listenerStartTime =
-        DateTime.now().subtract(const Duration(seconds: 5));
-
-    _rtdbSubscription = ref.onChildAdded.listen((event) {
-      if (!event.snapshot.exists || event.snapshot.value == null) return;
-
-      try {
-        final data = Map<dynamic, dynamic>.from(event.snapshot.value as Map);
-        final notif = NotificationModel.fromJson(data);
-
-        final notifTime = DateTime.tryParse(notif.timestamp);
-
-        // If notification was created before this app session started, skip local popup
-        if (notifTime != null && notifTime.isBefore(listenerStartTime)) {
-          _notifiedIds.add(notif.id);
-          return;
-        }
-
-        // Only trigger local popup with sound for unread notifications received in real-time
-        if (!notif.isRead && !_notifiedIds.contains(notif.id)) {
-          _notifiedIds.add(notif.id);
-          _showLocalNotification(notif);
-        }
-      } catch (_) {}
-    });
-  }
-
-  Future<void> _showLocalNotification(NotificationModel notif) async {
-    const androidDetails = AndroidNotificationDetails(
-      'hotel_casual_channel',
-      'Hotel Casual Notifications',
-      channelDescription: 'Notifications for job updates and applications',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-      enableVibration: true,
-      icon: '@drawable/ic_notification',
-    );
-
-    const iosDetails = DarwinNotificationDetails(
-      presentSound: true,
-      presentAlert: true,
-      presentBadge: true,
-    );
-
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _localNotifications.show(
-      notif.id.hashCode,
-      notif.title,
-      notif.body,
-      details,
-      payload: notif.jobId,
-    );
-  }
 
   Future<void> _showLocalNotificationFromFCM({
     required String title,
@@ -346,7 +275,6 @@ class NotificationService extends GetxService {
 
   @override
   void onClose() {
-    _rtdbSubscription?.cancel();
     _tokenRefreshSubscription?.cancel();
     super.onClose();
   }
