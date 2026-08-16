@@ -66,7 +66,26 @@ class MyJobsView extends GetView<MyJobsController> {
         Color statusColor;
         String statusLabel;
 
-        if (job.status == 'cancelled') {
+        // Check if the job date has passed
+        bool isDatePast = false;
+        try {
+          final parts = job.date.split('-');
+          if (parts.length == 3) {
+            final jobDate = DateTime(
+              int.parse(parts[0]),
+              int.parse(parts[1]),
+              int.parse(parts[2]),
+            );
+            final today = DateTime.now();
+            isDatePast = jobDate
+                .isBefore(DateTime(today.year, today.month, today.day));
+          }
+        } catch (_) {}
+
+        if (isDatePast && job.status != 'cancelled' && job.status != 'completed') {
+          statusColor = Colors.red.shade700;
+          statusLabel = '📅 Date Passed';
+        } else if (job.status == 'cancelled') {
           statusColor = Colors.red.shade600;
           statusLabel = 'Cancelled';
         } else if (job.status == 'completed') {

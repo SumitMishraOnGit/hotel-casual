@@ -31,7 +31,22 @@ class WorkerHomeController extends GetxController {
     Get.find<NotificationService>().requestPermission();
     _jobService.streamOpenJobs().listen((list) {
       final role = _authService.currentUser.value?.role ?? '';
+      final today = DateTime.now();
+      final todayOnly = DateTime(today.year, today.month, today.day);
       jobs.value = list.where((job) {
+        // Filter out jobs whose date has already passed
+        try {
+          final parts = job.date.split('-');
+          if (parts.length == 3) {
+            final jobDate = DateTime(
+              int.parse(parts[0]),
+              int.parse(parts[1]),
+              int.parse(parts[2]),
+            );
+            if (jobDate.isBefore(todayOnly)) return false;
+          }
+        } catch (_) {}
+        // Filter by role
         if (role.isEmpty) return true;
         return job.titles.any(
           (t) => t.role.toLowerCase() == role.toLowerCase(),

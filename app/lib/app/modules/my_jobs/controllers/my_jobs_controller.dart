@@ -13,15 +13,37 @@ class MyJobsController extends GetxController {
 
   String get workerUid => _authService.currentUser.value?.uid ?? '';
 
+  /// Returns true if the job's date is today or in the future
+  bool _isDateUpcoming(String dateStr) {
+    try {
+      final parts = dateStr.split('-');
+      if (parts.length != 3) return false;
+      final jobDate = DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+      final today = DateTime.now();
+      final todayOnly = DateTime(today.year, today.month, today.day);
+      return !jobDate.isBefore(todayOnly);
+    } catch (_) {
+      return false;
+    }
+  }
+
   List<JobModel> get upcomingJobs {
     return allMyJobs.where((job) {
+      if (job.status == 'cancelled') return false;
+      if (!_isDateUpcoming(job.date)) return false;
       return job.status == 'open' || job.status == 'filled';
     }).toList();
   }
 
   List<JobModel> get pastJobs {
     return allMyJobs.where((job) {
-      return job.status == 'completed' || job.status == 'cancelled';
+      if (job.status == 'completed' || job.status == 'cancelled') return true;
+      // Date has passed but status wasn't updated (open/filled)
+      return !_isDateUpcoming(job.date);
     }).toList();
   }
 
