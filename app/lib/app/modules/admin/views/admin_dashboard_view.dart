@@ -333,19 +333,36 @@ class _JobCard extends StatelessWidget {
         job.titles.isNotEmpty ? job.titles.first.role : 'Staff';
     final openSlots = job.totalSlots - job.filledSlots;
 
+    // Detect if job date has already passed
+    bool isPast = false;
+    try {
+      final parts = job.date.split('-');
+      if (parts.length == 3) {
+        final jobDate = DateTime(
+          int.parse(parts[0]),
+          int.parse(parts[1]),
+          int.parse(parts[2]),
+        );
+        final today = DateTime.now();
+        isPast = jobDate.isBefore(DateTime(today.year, today.month, today.day));
+      }
+    } catch (_) {}
+
+    final isDimmed = isCancelled || isPast;
+
     return GestureDetector(
       onTap: () => Get.toNamed(Routes.jobDetail, arguments: job),
       child: Opacity(
-        opacity: isCancelled ? 0.5 : 1.0,
+        opacity: isDimmed ? 0.55 : 1.0,
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: isCancelled
+            border: isDimmed
                 ? Border.all(color: const Color(0xFF14181F).withValues(alpha: 0.12))
                 : null,
-            boxShadow: isCancelled
+            boxShadow: isDimmed
                 ? []
                 : [
                     BoxShadow(
@@ -374,29 +391,16 @@ class _JobCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         fontSize: 17,
                         height: 1.2,
-                        color: isCancelled
+                        color: isDimmed
                             ? const Color(0xFF6B7280)
                             : const Color(0xFF14181F),
                       ),
                     ),
                   ),
                   if (isCancelled)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6B7280).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: const Text(
-                        'Cancelled',
-                        style: TextStyle(
-                          color: Color(0xFF4B5563),
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
+                    _statusTag('Cancelled', const Color(0xFF6B7280), const Color(0xFF4B5563))
+                  else if (isPast)
+                    _statusTag('Date Passed', const Color(0xFF78716C), const Color(0xFF57534E))
                   else if (isOpen)
                     GestureDetector(
                       onTap: () => _confirmCancel(context),
@@ -419,7 +423,7 @@ class _JobCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: isCancelled
+                  color: isDimmed
                       ? const Color(0xFF6B7280).withValues(alpha: 0.1)
                       : const Color(0xFFF59E0B).withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(100),
@@ -427,7 +431,7 @@ class _JobCard extends StatelessWidget {
                 child: Text(
                   primaryRole.capitalizeFirst ?? primaryRole,
                   style: TextStyle(
-                    color: isCancelled
+                    color: isDimmed
                         ? const Color(0xFF6B7280)
                         : const Color(0xFFB45309),
                     fontSize: 11.5,
@@ -444,13 +448,13 @@ class _JobCard extends StatelessWidget {
                     child: _StatBox(
                       label: 'Wage / job',
                       value: '₹${job.wage}',
-                      bg: isCancelled
+                      bg: isDimmed
                           ? const Color(0xFFF3F4F6)
                           : const Color(0xFFF59E0B).withValues(alpha: 0.10),
-                      labelColor: isCancelled
+                      labelColor: isDimmed
                           ? const Color(0xFF6B7280)
                           : const Color(0xFF92600A),
-                      valueColor: isCancelled
+                      valueColor: isDimmed
                           ? const Color(0xFF4B5563)
                           : const Color(0xFFB45309),
                     ),
@@ -460,17 +464,17 @@ class _JobCard extends StatelessWidget {
                     child: _StatBox(
                       label: 'Open slots',
                       value: openSlots <= 0 ? '0 (Full)' : '$openSlots',
-                      bg: isCancelled
+                      bg: isDimmed
                           ? const Color(0xFFF3F4F6)
                           : (openSlots <= 0
                               ? const Color(0xFFFEF2F2)
                               : const Color(0xFF0F766E).withValues(alpha: 0.08)),
-                      labelColor: isCancelled
+                      labelColor: isDimmed
                           ? const Color(0xFF6B7280)
                           : (openSlots <= 0
                               ? const Color(0xFFDC2626)
                               : const Color(0xFF0F766E)),
-                      valueColor: isCancelled
+                      valueColor: isDimmed
                           ? const Color(0xFF4B5563)
                           : (openSlots <= 0
                               ? const Color(0xFFDC2626)
@@ -517,6 +521,24 @@ class _JobCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _statusTag(String label, Color bgColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
