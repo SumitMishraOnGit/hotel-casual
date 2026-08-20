@@ -4,8 +4,16 @@ import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_view.dart';
 import '../modules/auth/bindings/login_binding.dart';
 import '../modules/auth/views/login_view.dart';
+import '../modules/auth/bindings/user_type_chooser_binding.dart';
+import '../modules/auth/views/user_type_chooser_view.dart';
 import '../modules/auth/bindings/register_binding.dart';
 import '../modules/auth/views/register_view.dart';
+import '../modules/auth/bindings/role_select_binding.dart';
+import '../modules/auth/views/role_select_view.dart';
+import '../modules/auth/bindings/worker_kyc_binding.dart';
+import '../modules/auth/views/worker_kyc_view.dart';
+import '../modules/auth/bindings/hotel_onboarding_binding.dart';
+import '../modules/auth/views/hotel_onboarding_view.dart';
 import '../modules/worker_home/bindings/worker_home_binding.dart';
 import '../modules/worker_home/views/worker_home_view.dart';
 import '../modules/admin/bindings/admin_dashboard_binding.dart';
@@ -24,6 +32,7 @@ import '../modules/my_jobs/views/my_jobs_view.dart';
 import '../modules/notifications/bindings/notifications_binding.dart';
 import '../modules/notifications/views/notifications_view.dart';
 
+
 class AppPages {
   static const initial = Routes.splash;
 
@@ -39,9 +48,29 @@ class AppPages {
       binding: LoginBinding(),
     ),
     GetPage(
+      name: Routes.userTypeChooser,
+      page: () => const UserTypeChooserView(),
+      binding: UserTypeChooserBinding(),
+    ),
+    GetPage(
       name: Routes.register,
       page: () => const RegisterView(),
       binding: RegisterBinding(),
+    ),
+    GetPage(
+      name: Routes.roleSelect,
+      page: () => const RoleSelectView(),
+      binding: RoleSelectBinding(),
+    ),
+    GetPage(
+      name: Routes.workerKyc,
+      page: () => const WorkerKycView(),
+      binding: WorkerKycBinding(),
+    ),
+    GetPage(
+      name: Routes.hotelOnboarding,
+      page: () => const HotelOnboardingView(),
+      binding: HotelOnboardingBinding(),
     ),
     GetPage(
       name: Routes.workerHome,
@@ -85,3 +114,4 @@ class AppPages {
     ),
   ];
 }
+

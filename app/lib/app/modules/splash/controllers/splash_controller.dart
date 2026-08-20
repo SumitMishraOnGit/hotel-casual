@@ -20,19 +20,26 @@ class SplashController extends GetxController {
       try {
         final userProfile = await _authService.fetchUserProfile(firebaseUser.uid);
         if (userProfile != null) {
-          if (userProfile.role == 'admin') {
+          if (userProfile.userType == 'hotel' ||
+              userProfile.userType == 'superadmin' ||
+              userProfile.role == 'admin') {
             Get.offAllNamed(Routes.adminDashboard);
             return;
           } else {
             Get.offAllNamed(Routes.workerHome);
             return;
           }
+        } else {
+          // Logged in via Firebase Auth, but hasn't completed profile -> clean up session
+          await _authService.cleanupIncompleteSession();
         }
       } catch (_) {
-        // If error fetching profile, fallback to login
+        // If error fetching profile, clean up session
+        await _authService.cleanupIncompleteSession();
       }
     }
 
     Get.offAllNamed(Routes.login);
   }
 }
+

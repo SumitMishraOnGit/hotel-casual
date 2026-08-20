@@ -4,6 +4,7 @@ class JobModel {
   final String jobId;
   final int jobNumber; // sequential human-readable ID
   final String adminId;
+  final String? hotelId; // owner hotel uid; null means superadmin-posted
   final String venueName;
   final String venueAddress;
   final String city;
@@ -21,6 +22,7 @@ class JobModel {
     required this.jobId,
     this.jobNumber = 0,
     required this.adminId,
+    this.hotelId,
     required this.venueName,
     required this.venueAddress,
     required this.city,
@@ -59,6 +61,7 @@ class JobModel {
     'jobId': jobId,
     'jobNumber': jobNumber,
     'adminId': adminId,
+    if (hotelId != null) 'hotelId': hotelId,
     'venueName': venueName,
     'venueAddress': venueAddress,
     'city': city,
@@ -119,6 +122,7 @@ class JobModel {
       jobId: json['jobId'] ?? '',
       jobNumber: _toInt(json['jobNumber']),
       adminId: json['adminId'] ?? '',
+      hotelId: json['hotelId']?.toString(),
       venueName: json['venueName'] ?? '',
       venueAddress: json['venueAddress'] ?? '',
       city: json['city'] ?? '',
@@ -137,3 +141,4 @@ class JobModel {
   static int _toInt(dynamic v) =>
       v is int ? v : int.tryParse(v?.toString() ?? '') ?? 0;
 }
+

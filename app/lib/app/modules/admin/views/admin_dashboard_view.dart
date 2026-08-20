@@ -11,10 +11,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Get.find<AuthService>().currentUser.value;
-    final fullName = (user?.name != null && user!.name.trim().isNotEmpty)
-        ? user.name
-        : 'Admin';
+    final authService = Get.find<AuthService>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -28,31 +25,37 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Namaste 👋',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.8),
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+        title: Obx(() {
+          final user = authService.currentUser.value;
+          final displayName = (user?.hotelName != null && user!.hotelName!.trim().isNotEmpty)
+              ? user.hotelName!
+              : ((user?.name != null && user!.name.trim().isNotEmpty) ? user.name : 'Admin');
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Namaste 👋',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              fullName,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 22,
+              const SizedBox(height: 2),
+              Text(
+                displayName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 22,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-          ],
-        ),
+            ],
+          );
+        }),
         actions: [
           Obx(() {
             final unread = controller.unreadNotifCount;
