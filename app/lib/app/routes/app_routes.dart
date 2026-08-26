@@ -14,6 +14,7 @@ abstract class Routes {
   static const profile = '/profile';
   static const myJobs = '/my-jobs';
   static const notifications = '/notifications';
+  static const workerProfileDetail = '/worker-profile-detail';
 }
 
 

@@ -23,14 +23,17 @@ class JobDetailView extends GetView<JobDetailController> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline_rounded,
-                    size: 60, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.error_outline_rounded,
+                  size: 60,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   'Job details unavailable',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
@@ -49,8 +52,9 @@ class JobDetailView extends GetView<JobDetailController> {
 
       final job = controller.job.value!;
       final primaryTitle = job.titles.isNotEmpty ? job.titles.first : null;
-      final roleHeading =
-          primaryTitle != null ? primaryTitle.title : job.venueName;
+      final roleHeading = primaryTitle != null
+          ? primaryTitle.title
+          : job.venueName;
 
       return Scaffold(
         backgroundColor: AppColors.background,
@@ -78,7 +82,9 @@ class JobDetailView extends GetView<JobDetailController> {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -99,32 +105,35 @@ class JobDetailView extends GetView<JobDetailController> {
               Text(
                 roleHeading,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 job.venueName,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: 12),
 
               // ── Location & Salary Summary ───────────────────────────
               Row(
                 children: [
-                  const Icon(Icons.location_on_outlined,
-                      size: 18, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 18,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       '${job.venueAddress}, ${job.city}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                        color: AppColors.textSecondary,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -177,16 +186,147 @@ class JobDetailView extends GetView<JobDetailController> {
                       textColor: Colors.red.shade700,
                     )
                   else
-                    _buildChip('New Job',
-                        color: Colors.purple.shade50, textColor: Colors.purple),
-                  _buildChip('${job.totalSlots} Vacancies',
-                      color: Colors.blue.shade50,
-                      textColor: Colors.blue.shade800),
-                  _buildChip('Date: ${job.date}',
-                      color: Colors.grey.shade100,
-                      textColor: AppColors.textPrimary),
+                    _buildChip(
+                      'New Job',
+                      color: Colors.purple.shade50,
+                      textColor: Colors.purple,
+                    ),
+                  _buildChip(
+                    '${job.totalSlots} Vacancies',
+                    color: Colors.blue.shade50,
+                    textColor: Colors.blue.shade800,
+                  ),
+                  _buildChip(
+                    'Date: ${job.date}',
+                    color: Colors.grey.shade100,
+                    textColor: AppColors.textPrimary,
+                  ),
                 ],
               ),
+              const SizedBox(height: 16),
+
+              // ── Posted By Hotel Card ──────────────────────────────
+              Obx(() {
+                final poster = controller.posterUser.value;
+                final hotelDisplayName = (poster?.hotelName != null &&
+                        poster!.hotelName!.trim().isNotEmpty)
+                    ? poster.hotelName!
+                    : ((poster?.name != null && poster!.name.trim().isNotEmpty)
+                        ? poster.name
+                        : job.venueName);
+                final hotelCity = poster?.city.isNotEmpty == true
+                    ? poster!.city
+                    : job.city;
+
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFF0F766E).withValues(alpha: 0.15),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFF0F766E).withValues(alpha: 0.1),
+                          border: Border.all(
+                            color: const Color(0xFF0F766E)
+                                .withValues(alpha: 0.25),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: ClipOval(
+                          child: (poster?.photoUrl != null &&
+                                  poster!.photoUrl!.isNotEmpty)
+                              ? Image.network(
+                                  poster.photoUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) => const Center(
+                                    child: Icon(
+                                      Icons.business_rounded,
+                                      color: Color(0xFF0F766E),
+                                      size: 22,
+                                    ),
+                                  ),
+                                )
+                              : const Center(
+                                  child: Icon(
+                                    Icons.business_rounded,
+                                    color: Color(0xFF0F766E),
+                                    size: 22,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'POSTED BY',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.6,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.verified_rounded,
+                                  size: 13,
+                                  color: Color(0xFF0F766E),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              hotelDisplayName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: Color(0xFF14181F),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (hotelCity.isNotEmpty) ...[
+                              const SizedBox(height: 1),
+                              Text(
+                                hotelCity,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
               const SizedBox(height: 16),
 
               // ── City Mismatch Warning Card ───────────────────────────
@@ -202,8 +342,11 @@ class JobDetailView extends GetView<JobDetailController> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.warning_amber_rounded,
-                          color: Color(0xFFD97706), size: 24),
+                      const Icon(
+                        Icons.warning_amber_rounded,
+                        color: Color(0xFFD97706),
+                        size: 24,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text.rich(
@@ -247,19 +390,25 @@ class JobDetailView extends GetView<JobDetailController> {
                     Text(
                       'Job Highlights',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    _buildHighlightItem(Icons.check_circle_outline,
-                        'Role required: ${primaryTitle?.role.toUpperCase() ?? "STAFF"}'),
+                    _buildHighlightItem(
+                      Icons.check_circle_outline,
+                      'Role required: ${_formatRole(primaryTitle?.role ?? "Staff")}',
+                    ),
                     const SizedBox(height: 8),
-                    _buildHighlightItem(Icons.calendar_today_outlined,
-                        'Job Date: ${job.date}'),
+                    _buildHighlightItem(
+                      Icons.calendar_today_outlined,
+                      'Job Date: ${job.date}',
+                    ),
                     const SizedBox(height: 8),
-                    _buildHighlightItem(Icons.payments_outlined,
-                        'Daily Wage: ₹${primaryTitle?.wage != null && primaryTitle!.wage > 0 ? primaryTitle.wage : job.wage} (Paid on completion)'),
+                    _buildHighlightItem(
+                      Icons.payments_outlined,
+                      'Daily Wage: ₹${primaryTitle?.wage != null && primaryTitle!.wage > 0 ? primaryTitle.wage : job.wage} (Paid on completion)',
+                    ),
                   ],
                 ),
               ),
@@ -281,17 +430,17 @@ class JobDetailView extends GetView<JobDetailController> {
                       Text(
                         'Job Description',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         job.description,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                              height: 1.5,
-                            ),
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
                       ),
                     ],
                   ),
@@ -314,17 +463,15 @@ class JobDetailView extends GetView<JobDetailController> {
                     Text(
                       'Roles & Wages',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     if (job.titles.isEmpty)
                       Text(
                         '₹ ${job.wage} per job',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
+                        style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
@@ -339,13 +486,17 @@ class JobDetailView extends GetView<JobDetailController> {
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.1),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  t.role.capitalizeFirst ?? t.role,
+                                  _formatRole(t.role),
                                   style: const TextStyle(
                                     color: AppColors.primary,
                                     fontSize: 11,
@@ -357,9 +508,7 @@ class JobDetailView extends GetView<JobDetailController> {
                               Flexible(
                                 child: Text(
                                   t.title,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
+                                  style: Theme.of(context).textTheme.bodyMedium
                                       ?.copyWith(
                                         color: AppColors.textPrimary,
                                         fontWeight: FontWeight.w500,
@@ -370,9 +519,7 @@ class JobDetailView extends GetView<JobDetailController> {
                               const SizedBox(width: 8),
                               Text(
                                 '₹$itemWage / job',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color: AppColors.primary,
                                       fontWeight: FontWeight.bold,
@@ -403,33 +550,33 @@ class JobDetailView extends GetView<JobDetailController> {
                       Text(
                         'Contact Person',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         job.contactPersonName,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: 16),
                     ],
                     Text(
                       'Venue Address',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${job.venueName}\n${job.venueAddress}, ${job.city}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                            height: 1.4,
-                          ),
+                        color: AppColors.textSecondary,
+                        height: 1.4,
+                      ),
                     ),
                   ],
                 ),
@@ -460,8 +607,11 @@ class JobDetailView extends GetView<JobDetailController> {
     });
   }
 
-  Widget _buildChip(String label,
-      {required Color color, required Color textColor}) {
+  Widget _buildChip(
+    String label, {
+    required Color color,
+    required Color textColor,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -517,44 +667,52 @@ class JobDetailView extends GetView<JobDetailController> {
             icon: const Icon(Icons.people_outline_rounded, size: 20),
             label: Text(
               'Applicants ($applicantCount)',
-              style:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
           ),
         ),
         if (job.status == 'open' && !controller.isJobDatePast) ...[
           const SizedBox(width: 12),
           Expanded(
-            child: Obx(() => OutlinedButton(
-              onPressed: controller.isCancelling.value ? null : controller.cancelJob,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.redAccent,
-                disabledForegroundColor: Colors.redAccent.withValues(alpha: 0.5),
-                side: BorderSide(
-                  color: controller.isCancelling.value
-                      ? Colors.redAccent.withValues(alpha: 0.4)
-                      : Colors.redAccent,
-                  width: 1.5,
+            child: Obx(
+              () => OutlinedButton(
+                onPressed: controller.isCancelling.value
+                    ? null
+                    : controller.cancelJob,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.redAccent,
+                  disabledForegroundColor: Colors.redAccent.withValues(
+                    alpha: 0.5,
+                  ),
+                  side: BorderSide(
+                    color: controller.isCancelling.value
+                        ? Colors.redAccent.withValues(alpha: 0.4)
+                        : Colors.redAccent,
+                    width: 1.5,
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              child: controller.isCancelling.value
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.redAccent,
+                child: controller.isCancelling.value
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.redAccent,
+                        ),
+                      )
+                    : const Text(
+                        'Cancel Job',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
                       ),
-                    )
-                  : const Text(
-                      'Cancel Job',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                    ),
-            )),
+              ),
+            ),
           ),
         ],
       ],
@@ -662,22 +820,25 @@ class JobDetailView extends GetView<JobDetailController> {
                       Text(
                         label,
                         style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                     ],
                   )
                 : Text(
                     label,
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () =>
-                controller.launchCaller(job.contactPersonPhone),
+            onPressed: () => controller.launchCaller(job.contactPersonPhone),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -695,5 +856,20 @@ class JobDetailView extends GetView<JobDetailController> {
         ),
       ],
     );
+  }
+
+  static String _formatRole(String role) {
+    final lower = role.toLowerCase();
+    if (lower == 'casual_banquet' || lower == 'steward') {
+      return 'Casual Banquet';
+    }
+    if (lower == 'cook_banquet' || lower == 'chef') return 'Cook Banquet';
+    if (lower == 'driver') return 'Driver';
+    if (lower == 'staff' || lower.isEmpty) return 'Staff';
+    // Fallback: replace underscores and title-case each word
+    return lower
+        .split('_')
+        .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ');
   }
 }

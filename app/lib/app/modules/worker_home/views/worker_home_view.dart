@@ -119,124 +119,129 @@ class WorkerHomeView extends GetView<WorkerHomeController> {
           ),
         ],
       ),
-      body: CustomScrollView(
-        slivers: [
-          // Search Bar & Filter Chips Header
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Search Bar
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
+      body: RefreshIndicator(
+        onRefresh: controller.onRefresh,
+        color: const Color(0xFF0F766E),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // Search Bar & Filter Chips Header
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Search Bar
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        onChanged: (val) => controller.searchQuery.value = val,
+                        decoration: InputDecoration(
+                          hintText: 'Search hotel, city...',
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 14,
+                          ),
+                          prefixIcon: Icon(Icons.search_rounded,
+                              color: Colors.grey.shade400, size: 22),
+                          border: InputBorder.none,
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 14),
                         ),
-                      ],
-                    ),
-                    child: TextField(
-                      onChanged: (val) => controller.searchQuery.value = val,
-                      decoration: InputDecoration(
-                        hintText: 'Search hotel, city...',
-                        hintStyle: TextStyle(
-                          color: Colors.grey.shade400,
-                          fontSize: 14,
-                        ),
-                        prefixIcon: Icon(Icons.search_rounded,
-                            color: Colors.grey.shade400, size: 22),
-                        border: InputBorder.none,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 14),
                       ),
                     ),
                   ),
-                ),
 
-                // Available Jobs Section Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                  child: Text(
-                    'AVAILABLE JOBS',
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.6,
-                      color: Colors.grey.shade600,
+                  // Available Jobs Section Header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                    child: Text(
+                      'AVAILABLE JOBS',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.6,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          // Jobs List or Empty View
-          SliverToBoxAdapter(
-            child: Obx(() {
-              if (controller.isLoading.value) {
-                return const Padding(
-                  padding: EdgeInsets.only(top: 40),
-                  child: Center(
-                    child: CircularProgressIndicator(color: Color(0xFF0F766E)),
-                  ),
-                );
-              }
-
-              final filtered = controller.filteredJobs;
-
-              if (filtered.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.only(top: 40),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.work_off_outlined,
-                          size: 64,
-                          color: AppColors.border,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No open jobs available right now',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                        ),
-                      ],
+            // Jobs List or Empty View
+            SliverToBoxAdapter(
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Padding(
+                    padding: EdgeInsets.only(top: 40),
+                    child: Center(
+                      child: CircularProgressIndicator(color: Color(0xFF0F766E)),
                     ),
+                  );
+                }
+
+                final filtered = controller.filteredJobs;
+
+                if (filtered.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.work_off_outlined,
+                            size: 64,
+                            color: AppColors.border,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No open jobs available right now',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final job = filtered[index];
+                      return WorkerJobCard(
+                        job: job,
+                        onTap: () => controller.goToJobDetail(job),
+                      );
+                    },
                   ),
                 );
-              }
-
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filtered.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final job = filtered[index];
-                    return WorkerJobCard(
-                      job: job,
-                      onTap: () => controller.goToJobDetail(job),
-                    );
-                  },
-                ),
-              );
-            }),
-          ),
-        ],
+              }),
+            ),
+          ],
+        ),
       ),
     );
   }

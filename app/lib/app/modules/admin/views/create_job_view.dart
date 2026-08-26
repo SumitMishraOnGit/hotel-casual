@@ -273,7 +273,7 @@ class _TitleRow extends StatelessWidget {
                 runSpacing: 4,
                 children: controller.roles.map((role) {
                   final isSelected =
-                      row.role.value == role.toLowerCase();
+                      row.role.value == CreateJobController.roleToKey(role);
                   return GestureDetector(
                     onTap: () =>
                         controller.setRowRole(index, role),

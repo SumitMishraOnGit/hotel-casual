@@ -7,7 +7,8 @@ class ProfileView extends GetView<ProfileController> {
   const ProfileView({super.key});
 
   String _formatRole(String role, String userType) {
-    if (userType == 'hotel' || role == 'admin' || role == 'superadmin') {
+    if (userType == 'superadmin') return 'Super Admin 👑';
+    if (userType == 'hotel' || role == 'admin') {
       return 'Hotel Admin';
     }
     if (role == 'casual_banquet') return 'Casual — Banquet';
@@ -32,11 +33,14 @@ class ProfileView extends GetView<ProfileController> {
 
         final expYears = user.experienceYears;
         final experienceString = '$expYears yr${expYears != 1 ? 's' : ''}';
-        final isHotel = user.userType == 'hotel' || user.role == 'admin';
+        final isSuperAdmin = user.userType == 'superadmin';
+        final isHotel = !isSuperAdmin && (user.userType == 'hotel' || user.role == 'admin');
 
-        final displayName = isHotel
-            ? (user.hotelName != null && user.hotelName!.isNotEmpty ? user.hotelName! : user.name)
-            : user.name;
+        final displayName = isSuperAdmin
+            ? user.name
+            : isHotel
+                ? (user.hotelName != null && user.hotelName!.isNotEmpty ? user.hotelName! : user.name)
+                : user.name;
         final roleLabel = _formatRole(user.role, user.userType);
 
         return SingleChildScrollView(
@@ -169,9 +173,11 @@ class ProfileView extends GetView<ProfileController> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
                             decoration: BoxDecoration(
-                              color: isHotel
-                                  ? const Color(0xFFF59E0B).withValues(alpha: 0.14)
-                                  : AppColors.primary.withValues(alpha: 0.1),
+                              color: isSuperAdmin
+                                  ? const Color(0xFF6D28D9).withValues(alpha: 0.12)
+                                  : isHotel
+                                      ? const Color(0xFFF59E0B).withValues(alpha: 0.14)
+                                      : AppColors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(100),
                             ),
                             child: Text(
@@ -180,7 +186,11 @@ class ProfileView extends GetView<ProfileController> {
                                 fontFamily: 'Inter',
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w700,
-                                color: isHotel ? const Color(0xFFB45309) : AppColors.primary,
+                                color: isSuperAdmin
+                                    ? const Color(0xFF6D28D9)
+                                    : isHotel
+                                        ? const Color(0xFFB45309)
+                                        : AppColors.primary,
                               ),
                             ),
                           ),
@@ -193,7 +203,75 @@ class ProfileView extends GetView<ProfileController> {
                       offset: const Offset(0, -22),
                       child: Column(
                         children: [
-                          if (isHotel) ...[
+                          if (isSuperAdmin) ...[
+                            // Superadmin Name
+                            _buildCard(
+                              icon: '👑',
+                              iconBg: const Color(0xFF6D28D9).withValues(alpha: 0.1),
+                              label: 'Name',
+                              value: user.name,
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Phone Number
+                            _buildCard(
+                              icon: '📞',
+                              label: 'Phone Number',
+                              value: user.phone,
+                            ),
+                            const SizedBox(height: 12),
+
+                            // City
+                            _buildCard(
+                              icon: '📍',
+                              label: 'City',
+                              value: user.city.isNotEmpty ? user.city : 'Not set',
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Platform info card
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF6D28D9).withValues(alpha: 0.07),
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: const Color(0xFF6D28D9).withValues(alpha: 0.18),
+                                ),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Text('🛡️', style: TextStyle(fontSize: 20)),
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Platform Super Admin',
+                                          style: TextStyle(
+                                            fontFamily: 'PlusJakartaSans',
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: Color(0xFF6D28D9),
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'Full access to all hotels, workers & shifts',
+                                          style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontSize: 11.5,
+                                            color: Color(0xFF6D28D9),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ] else if (isHotel) ...[
                             // Hotel Name
                             _buildCard(
                               icon: '🏢',
@@ -237,7 +315,7 @@ class ProfileView extends GetView<ProfileController> {
                             ),
                             const SizedBox(height: 10),
 
-                            // GST Number (Locked / Read-Only preview)
+                            // GST Number (Locked / Read-Only field)
                             _buildDocCard(
                               icon: '✅',
                               iconBg: const Color(0xFF16A34A).withValues(alpha: 0.1),
@@ -245,12 +323,6 @@ class ProfileView extends GetView<ProfileController> {
                               subtitle: user.gstNumber != null && user.gstNumber!.isNotEmpty
                                   ? user.gstNumber!
                                   : 'Not provided',
-                              onPreview: (user.gstCertUrl != null && user.gstCertUrl!.isNotEmpty)
-                                  ? () => controller.showDocumentPreview(
-                                        'GST Certificate',
-                                        user.gstCertUrl!,
-                                      )
-                                  : null,
                             ),
                             const SizedBox(height: 10),
 

@@ -7,6 +7,11 @@ class JobApplicant {
   final int titleIndex;
   final String titleName; // resolved from job.titles[titleIndex].title
   final String appliedAt;
+  final int experienceYears;
+  final String? photoUrl;
+  final String? docType; // 'license' | 'aadhaar'
+  final String? docNumber;
+  final String? docImageUrl;
 
   JobApplicant({
     required this.uid,
@@ -17,5 +22,10 @@ class JobApplicant {
     required this.titleIndex,
     required this.titleName,
     required this.appliedAt,
+    this.experienceYears = 0,
+    this.photoUrl,
+    this.docType,
+    this.docNumber,
+    this.docImageUrl,
   });
 }

@@ -19,7 +19,7 @@ class TitleRowState {
   TextEditingController get slotsController =>
       _slotsController ??= TextEditingController();
 
-  TitleRowState() : role = 'steward'.obs {
+  TitleRowState() : role = 'casual_banquet'.obs {
     _titleController = TextEditingController();
     _wageController = TextEditingController();
     _slotsController = TextEditingController();
@@ -56,7 +56,20 @@ class CreateJobController extends GetxController {
   final isLoading = false.obs;
   final isFormValid = false.obs;
 
-  final roles = ['Steward', 'Driver', 'Chef'];
+  final roles = ['Casual Banquet', 'Cook Banquet', 'Driver'];
+
+  static String roleToKey(String displayName) {
+    final lower = displayName.toLowerCase();
+    if (lower.contains('cook') || lower.contains('chef')) return 'cook_banquet';
+    if (lower.contains('casual') || lower.contains('steward')) return 'casual_banquet';
+    return 'driver';
+  }
+
+  static String keyToDisplayName(String key) {
+    if (key == 'cook_banquet') return 'Cook Banquet';
+    if (key == 'casual_banquet') return 'Casual Banquet';
+    return 'Driver';
+  }
 
   final JobService _jobService = Get.find<JobService>();
   final AuthService _authService = Get.find<AuthService>();
@@ -105,7 +118,7 @@ class CreateJobController extends GetxController {
   }
 
   void setRowRole(int index, String role) {
-    titleRows[index].role.value = role.toLowerCase();
+    titleRows[index].role.value = roleToKey(role);
   }
 
   // ── Form Validity ────────────────────────────────────────
@@ -204,7 +217,7 @@ class CreateJobController extends GetxController {
           '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
       final entries = titleRows.map((r) {
-        final roleName = r.role.value.capitalizeFirst ?? r.role.value;
+        final roleName = keyToDisplayName(r.role.value);
         return JobTitleEntry(
           title: roleName,
           role: r.role.value,

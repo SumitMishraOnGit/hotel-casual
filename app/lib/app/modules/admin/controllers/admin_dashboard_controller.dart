@@ -7,6 +7,7 @@ import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/job_model.dart';
 import '../../../data/models/notification_model.dart';
+import '../../../data/models/user_model.dart';
 import '../../../routes/app_routes.dart';
 
 class AdminDashboardController extends GetxController {
@@ -15,15 +16,27 @@ class AdminDashboardController extends GetxController {
 
   final searchQuery = ''.obs;
   final selectedRole = 'All roles'.obs;
-  final roles = const ['All roles', 'Steward', 'Driver', 'Chef'];
+  final roles = const ['All roles', 'Casual Banquet', 'Cook Banquet', 'Driver'];
 
   final notifications = <NotificationModel>[].obs;
+
+  // ── Super Admin State ──────────────────────────────────────────────
+  final selectedTabIndex = 0.obs;
+  final hotels = <UserModel>[].obs;
+  final workers = <UserModel>[].obs;
+  final hotelSearchQuery = ''.obs;
+  final workerSearchQuery = ''.obs;
+  final workerRoleFilter = 'All'.obs;
+  final workerRoleOptions = const ['All', 'Casual Banquet', 'Cook Banquet', 'Driver'];
+  final selectedStatus = 'All Status'.obs;
+  final statusOptions = const ['All Status', 'Open', 'Cancelled', 'Past'];
 
   late final JobService _jobService;
   late final AuthService _authService;
   late final NotificationService _notifService;
 
   String get adminId => _authService.currentUser.value?.uid ?? '';
+  bool get isSuperAdmin => _authService.currentUser.value?.userType == 'superadmin';
 
   int get unreadNotifCount => notifications.where((n) => !n.isRead).length;
 
@@ -38,7 +51,88 @@ class AdminDashboardController extends GetxController {
 
       final role = selectedRole.value;
       final matchesRole = role == 'All roles' ||
-          job.titles.any((t) => t.role.toLowerCase() == role.toLowerCase());
+          job.titles.any((t) {
+            final tRole = t.role.toLowerCase();
+            if (role == 'Casual Banquet') {
+              return tRole == 'casual_banquet' || tRole == 'steward';
+            }
+            if (role == 'Cook Banquet') {
+              return tRole == 'cook_banquet' || tRole == 'chef';
+            }
+            if (role == 'Driver') {
+              return tRole == 'driver';
+            }
+            return tRole == role.toLowerCase();
+          });
+
+      // Status filter (superadmin)
+      final status = selectedStatus.value;
+      bool matchesStatus = true;
+      if (status != 'All Status') {
+        if (status == 'Open') {
+          matchesStatus = job.status == 'open' && !_isJobPast(job);
+        } else if (status == 'Cancelled') {
+          matchesStatus = job.status == 'cancelled';
+        } else if (status == 'Past') {
+          matchesStatus = _isJobPast(job) && job.status != 'cancelled';
+        }
+      }
+
+      return matchesQuery && matchesRole && matchesStatus;
+    }).toList();
+  }
+
+  /// Check if job date has already passed
+  static bool _isJobPast(JobModel job) {
+    try {
+      final parts = job.date.split('-');
+      if (parts.length == 3) {
+        final jobDate = DateTime(
+          int.parse(parts[0]),
+          int.parse(parts[1]),
+          int.parse(parts[2]),
+        );
+        final today = DateTime.now();
+        return jobDate.isBefore(DateTime(today.year, today.month, today.day));
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  // ── Super Admin Filtered Getters ────────────────────────────────────
+  List<UserModel> get filteredHotels {
+    final q = hotelSearchQuery.value.toLowerCase().trim();
+    if (q.isEmpty) return hotels;
+    return hotels.where((h) {
+      return (h.hotelName ?? h.name).toLowerCase().contains(q) ||
+          h.city.toLowerCase().contains(q) ||
+          (h.gstNumber ?? '').toLowerCase().contains(q);
+    }).toList();
+  }
+
+  List<UserModel> get filteredWorkers {
+    return workers.where((w) {
+      final q = workerSearchQuery.value.toLowerCase().trim();
+      final matchesQuery = q.isEmpty ||
+          w.name.toLowerCase().contains(q) ||
+          w.phone.toLowerCase().contains(q) ||
+          w.city.toLowerCase().contains(q);
+
+      final role = workerRoleFilter.value;
+      final matchesRole = role == 'All' ||
+          (() {
+            final wRole = w.role.toLowerCase();
+            if (role == 'Casual Banquet') {
+              return wRole == 'casual_banquet' || wRole == 'steward';
+            }
+            if (role == 'Cook Banquet') {
+              return wRole == 'cook_banquet' || wRole == 'chef';
+            }
+            if (role == 'Driver') {
+              return wRole == 'driver';
+            }
+            return wRole == role.toLowerCase();
+          })();
 
       return matchesQuery && matchesRole;
     }).toList();
@@ -52,10 +146,25 @@ class AdminDashboardController extends GetxController {
     _notifService = Get.find<NotificationService>();
 
     if (adminId.isNotEmpty) {
-      _jobService.streamAdminJobs(adminId).listen((list) {
-        jobs.value = list;
-        isLoading.value = false;
-      });
+      if (isSuperAdmin) {
+        // Super admin: stream ALL platform data
+        _jobService.streamAllJobs().listen((list) {
+          jobs.value = list;
+          isLoading.value = false;
+        });
+        _jobService.streamAllHotels().listen((list) {
+          hotels.value = list;
+        });
+        _jobService.streamAllWorkers().listen((list) {
+          workers.value = list;
+        });
+      } else {
+        // Normal hotel: stream only own jobs
+        _jobService.streamAdminJobs(adminId).listen((list) {
+          jobs.value = list;
+          isLoading.value = false;
+        });
+      }
 
       _notifService.streamNotifications(adminId).listen((list) {
         notifications.value = list;
@@ -63,6 +172,27 @@ class AdminDashboardController extends GetxController {
     } else {
       isLoading.value = false;
     }
+  }
+
+  Future<void> onRefresh() async {
+    if (adminId.isNotEmpty) {
+      await _authService.fetchUserProfile(adminId);
+    }
+    await Future.delayed(const Duration(milliseconds: 400));
+  }
+
+  Future<void> onRefreshHotels() async {
+    if (adminId.isNotEmpty) {
+      await _authService.fetchUserProfile(adminId);
+    }
+    await Future.delayed(const Duration(milliseconds: 400));
+  }
+
+  Future<void> onRefreshWorkers() async {
+    if (adminId.isNotEmpty) {
+      await _authService.fetchUserProfile(adminId);
+    }
+    await Future.delayed(const Duration(milliseconds: 400));
   }
 
   void onNotificationTap(NotificationModel notification) async {

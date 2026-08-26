@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import '../theme/app_colors.dart';
 import '../../data/models/job_model.dart';
 
@@ -146,7 +145,7 @@ class WorkerJobCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(100),
                 ),
                 child: Text(
-                  roleToDisplay.capitalizeFirst ?? roleToDisplay,
+                  _formatRole(roleToDisplay),
                   style: TextStyle(
                     color: isCancelled
                         ? const Color(0xFF6B7280)
@@ -292,4 +291,24 @@ class _StatBox extends StatelessWidget {
       ),
     );
   }
+}
+
+String _formatRole(String role) {
+  final lower = role.toLowerCase();
+  if (lower == 'casual_banquet' || lower == 'steward') {
+    return 'Casual Banquet';
+  }
+  if (lower == 'cook_banquet' || lower == 'chef') {
+    return 'Cook Banquet';
+  }
+  if (lower == 'driver') {
+    return 'Driver';
+  }
+  if (lower == 'staff' || lower.isEmpty) {
+    return 'Staff';
+  }
+  return lower
+      .split('_')
+      .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
+      .join(' ');
 }

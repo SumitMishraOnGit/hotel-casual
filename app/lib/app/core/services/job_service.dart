@@ -88,6 +88,58 @@ class JobService extends GetxService {
     });
   }
 
+  // Real-time stream of ALL jobs across the platform (for super admin)
+  Stream<List<JobModel>> streamAllJobs() {
+    return _db.child('jobs').onValue.map((event) {
+      if (!event.snapshot.exists || event.snapshot.value == null) return [];
+      final raw = Map<dynamic, dynamic>.from(event.snapshot.value as Map);
+      final jobs = raw.values
+          .map((v) => JobModel.fromJson(Map<dynamic, dynamic>.from(v as Map)))
+          .toList();
+      // Sort newest first
+      jobs.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return jobs;
+    });
+  }
+
+  // Real-time stream of all hotel-type users (for super admin)
+  Stream<List<UserModel>> streamAllHotels() {
+    return _db
+        .child('users')
+        .orderByChild('userType')
+        .equalTo('hotel')
+        .onValue
+        .map((event) {
+      if (!event.snapshot.exists || event.snapshot.value == null) return [];
+      final raw = Map<dynamic, dynamic>.from(event.snapshot.value as Map);
+      final hotels = raw.values
+          .map((v) => UserModel.fromJson(Map<dynamic, dynamic>.from(v as Map)))
+          .toList();
+      // Sort by creation date, newest first
+      hotels.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return hotels;
+    });
+  }
+
+  // Real-time stream of all worker-type users (for super admin)
+  Stream<List<UserModel>> streamAllWorkers() {
+    return _db
+        .child('users')
+        .orderByChild('userType')
+        .equalTo('worker')
+        .onValue
+        .map((event) {
+      if (!event.snapshot.exists || event.snapshot.value == null) return [];
+      final raw = Map<dynamic, dynamic>.from(event.snapshot.value as Map);
+      final workers = raw.values
+          .map((v) => UserModel.fromJson(Map<dynamic, dynamic>.from(v as Map)))
+          .toList();
+      // Sort by creation date, newest first
+      workers.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return workers;
+    });
+  }
+
   // Real-time stream of all open jobs for workers
   Stream<List<JobModel>> streamOpenJobs() {
     return _db
@@ -354,6 +406,11 @@ class JobService extends GetxService {
             titleIndex: titleIndex,
             titleName: titleName,
             appliedAt: appliedAt,
+            experienceYears: user.experienceYears,
+            photoUrl: user.photoUrl,
+            docType: user.docType,
+            docNumber: user.docNumber,
+            docImageUrl: user.docImageUrl,
           ));
         }
       } catch (_) {

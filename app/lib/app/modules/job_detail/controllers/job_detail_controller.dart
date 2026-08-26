@@ -1,15 +1,20 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/job_service.dart';
 import '../../../data/models/job_model.dart';
+import '../../../data/models/user_model.dart';
 import '../../../routes/app_routes.dart';
 
 class JobDetailController extends GetxController {
   final job = Rxn<JobModel>();
   final isAdmin = false.obs;
   final hasError = false.obs;
+
+  // Poster user state (hotel/admin who posted the job)
+  final posterUser = Rxn<UserModel>();
 
   // Apply flow state
   final hasApplied = false.obs;
@@ -31,12 +36,33 @@ class JobDetailController extends GetxController {
       hasError.value = true;
     }
     final currentUser = _authService.currentUser.value;
-    isAdmin.value = currentUser?.role == 'admin';
+    isAdmin.value =
+        currentUser?.userType == 'hotel' ||
+        currentUser?.userType == 'superadmin' ||
+        currentUser?.role == 'admin';
+
+    // Fetch poster hotel info
+    if (job.value != null) {
+      _fetchPosterInfo();
+    }
 
     // If worker, check if they've already applied
     if (!isAdmin.value && job.value != null && currentUser != null) {
       _checkAppliedStatus();
     }
+  }
+
+  Future<void> _fetchPosterInfo() async {
+    final adminId = job.value?.adminId;
+    if (adminId == null || adminId.isEmpty) return;
+    try {
+      final snapshot =
+          await FirebaseDatabase.instance.ref('users/$adminId').get();
+      if (snapshot.exists && snapshot.value != null) {
+        final data = Map<dynamic, dynamic>.from(snapshot.value as Map);
+        posterUser.value = UserModel.fromJson(data);
+      }
+    } catch (_) {}
   }
 
   String get userCity => _authService.currentUser.value?.city ?? '';
@@ -79,8 +105,10 @@ class JobDetailController extends GetxController {
 
     // Fallback: check Firebase directly (in case local data is stale)
     try {
-      final applied =
-          await _jobService.checkIfApplied(currentJob.jobId, currentUser.uid);
+      final applied = await _jobService.checkIfApplied(
+        currentJob.jobId,
+        currentUser.uid,
+      );
       hasApplied.value = applied;
     } catch (_) {
       // Silently ignore — worst case, worker can try to apply
@@ -99,8 +127,9 @@ class JobDetailController extends GetxController {
     if (isApplying.value) return 'applying';
 
     // Check role match
-    final hasMatchingRole = currentJob.titles
-        .any((t) => t.role.toLowerCase() == currentUser.role.toLowerCase());
+    final hasMatchingRole = currentJob.titles.any(
+      (t) => t.role.toLowerCase() == currentUser.role.toLowerCase(),
+    );
     if (!hasMatchingRole) return 'roleMismatch';
 
     // Check slot availability for this role
@@ -175,7 +204,11 @@ class JobDetailController extends GetxController {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
           children: [
-            Icon(Icons.info_outline_rounded, color: Color(0xFFD97706), size: 28),
+            Icon(
+              Icons.info_outline_rounded,
+              color: Color(0xFFD97706),
+              size: 28,
+            ),
             SizedBox(width: 10),
             Text('Job Just Filled'),
           ],
@@ -185,10 +218,7 @@ class JobDetailController extends GetxController {
           style: TextStyle(height: 1.5),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('OK'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('OK')),
         ],
       ),
       barrierDismissible: false,
@@ -227,7 +257,11 @@ class JobDetailController extends GetxController {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 28),
+            Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.redAccent,
+              size: 28,
+            ),
             SizedBox(width: 10),
             Text('Cancel Job?'),
           ],

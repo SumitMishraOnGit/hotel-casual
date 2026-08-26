@@ -25,6 +25,7 @@ import '../modules/job_detail/bindings/job_detail_binding.dart';
 import '../modules/job_detail/views/job_detail_view.dart';
 import '../modules/applicants/bindings/applicants_binding.dart';
 import '../modules/applicants/views/applicants_view.dart';
+import '../modules/applicants/views/worker_profile_detail_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
 import '../modules/my_jobs/bindings/my_jobs_binding.dart';
@@ -96,6 +97,10 @@ class AppPages {
       name: Routes.applicants,
       page: () => const ApplicantsView(),
       binding: ApplicantsBinding(),
+    ),
+    GetPage(
+      name: Routes.workerProfileDetail,
+      page: () => const WorkerProfileDetailView(),
     ),
     GetPage(
       name: Routes.profile,
