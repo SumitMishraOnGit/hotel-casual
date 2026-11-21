@@ -174,6 +174,10 @@ class LoginController extends GetxController {
         message = 'Invalid OTP. Please check and try again.';
       } else if (message.contains('session-expired')) {
         message = 'OTP expired. Please request a new code.';
+      } else if (message.contains('permission-denied') || message.contains('Permission denied')) {
+        message = 'Access denied. Please contact support.';
+      } else if (message.length > 120) {
+        message = 'Something went wrong. Please try again.';
       }
       Get.snackbar(
         'Verification Failed',
@@ -181,6 +185,7 @@ class LoginController extends GetxController {
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
+        duration: const Duration(seconds: 4),
       );
     } finally {
       isLoading.value = false;

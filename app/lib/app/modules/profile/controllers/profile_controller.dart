@@ -13,9 +13,7 @@ import '../../../routes/app_routes.dart';
 class ProfileController extends GetxController {
   final AuthService authService = Get.find<AuthService>();
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
-  final FirebaseStorage _storage = FirebaseStorage.instanceFor(
-    bucket: 'hotel-casual-demo.firebasestorage.app',
-  );
+  final FirebaseStorage _storage = FirebaseStorage.instance;
   final ImagePicker _picker = ImagePicker();
 
   final isUpdating = false.obs;
